@@ -1,4 +1,5 @@
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import * as Joi from "joi"
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -12,6 +13,9 @@ import { ConfigModule } from '@nestjs/config';
       isGlobal: true,
       envFilePath: process.env.NODE_ENV === "dev" ? ".env.dev" : ".env.test",
       ignoreEnvFile: process.env.Node_ENV === "prod",
+      validationSchema: Joi.object({
+        NODE_ENV: Joi.string().valid('dev', 'prod')
+      })
     }),
     TypeOrmModule.forRoot({
       type: "postgres",
