@@ -11,7 +11,8 @@ export class UsersService {
 
     /* 
     Create Account (takes createAccountInput(dto) as input)
-    returns string or undefined
+    returns Object(boolean,string-errormsg) for mutation output
+    **check @Mutation in users.resolver**
 
     1. check if new User exists in db
     2.1. if user exists
@@ -19,19 +20,18 @@ export class UsersService {
     2.2 if user does not exist (isNew)
     -> create user & hash the password
     -> return ok
-
-    **check @Mutation in users.resolver**
     */
 
-    async createAccount({ email, password, role }: CreateAccountInput): Promise<string | undefined> {
+    async createAccount({ email, password, role }: CreateAccountInput): Promise<{ok:boolean; error?: string}> {
         try {
             const exists = await this.users.exists({ where: { email } })
             if (exists) {
-                return "User already exists with the email."
+                return {ok:false, error:"User already exists with the email."}
             }
             await this.users.save(this.users.create({ email, password, role }))
+            return {ok:true}
         } catch (e) {
-            return "Failed to create account."
+            return {ok:false, error:"Failed to create account."}
         }
     }
 }
