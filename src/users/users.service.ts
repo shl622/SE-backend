@@ -4,11 +4,17 @@ import { User } from "./entities/user.entity";
 import { Injectable } from "@nestjs/common";
 import { CreateAccountInput } from "./dtos/create_account.dto";
 import { LoginInput } from "./dtos/login.dto";
+import * as jwt from "jsonwebtoken"
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "src/jwt/jwt.service";
 
 @Injectable()
 export class UsersService {
-    constructor(@InjectRepository(User) private readonly users: Repository<User>
-    ) { }
+    constructor(
+        @InjectRepository(User) private readonly users: Repository<User>, 
+        private readonly config: ConfigService,
+        private readonly jwtService : JwtService
+    ) {}
 
     /* 
     Create Account (takes createAccountInput(dto) as input)
@@ -61,9 +67,10 @@ export class UsersService {
                     error: "Password does not match."
                 }
             }
+            const token = jwt.sign({id:user.id}, this.config.get("SECRET_KEY"))
             return{
                 ok:true,
-                token:"verified"
+                token:token
             }
         }catch(error){
             return{
