@@ -90,11 +90,16 @@ export class UsersService {
     /*
     editProfile (takes id of user)
     return updateResult
-    doesn't validate auth as decorator checks from header
-    +update() is faster
+    update() is faster, but needs to use BeforeUpdate() for hashing passwords, so use save()
     */
-
-    async editProfile(userId:number, editProfileInput: EditProfileInput){
-        return this.users.update(userId, {...editProfileInput})
+    async editProfile(userId:number, {email, password}: EditProfileInput): Promise<User>{
+        const user = await this.users.findOne({where:{id:userId}})
+        if(email){
+            user.email=email
+        }
+        if(password){
+            user.password=password
+        }
+        return this.users.save(user)
     }
 }
