@@ -1,4 +1,4 @@
-import { Field } from "@nestjs/graphql";
+import { Field, ObjectType } from "@nestjs/graphql";
 import { CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 /*
@@ -6,6 +6,7 @@ import { CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "type
     id, createdAt, updatedAt
     These are extended on other entities as they are globally needed.
 */
+@ObjectType()
 export class CoreEntity{
     @PrimaryGeneratedColumn()
     @Field(type=>Number)
