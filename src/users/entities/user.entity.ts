@@ -42,12 +42,23 @@ export class User extends CoreEntity {
     //hash password before adding to DB
     //uses bcrypt- default 10 rounds of salt after hash
     @BeforeInsert()
-    async hashPassWord(): Promise<void>{
-        try{
+    async hashPassWord(): Promise<void> {
+        try {
             this.password = await bcrypt.hash(this.password, 10)
         }
-        catch(e){
+        catch (e) {
             console.log(e)
+            throw new InternalServerErrorException()
+        }
+    }
+
+    //password authentication function
+    //checks hashed pw with provided pw->hash
+    async checkPassword(pw: string): Promise<boolean> {
+        try {
+            return await bcrypt.compare(pw, this.password)
+        } catch (error) {
+            console.log(error)
             throw new InternalServerErrorException()
         }
     }
