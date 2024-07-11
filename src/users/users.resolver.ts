@@ -3,6 +3,8 @@ import { User } from "./entities/user.entity";
 import { UsersService } from "./users.service";
 import { CreateAccountInput, CreateAccountOutput } from "./dtos/create_account.dto";
 import { LoginInput, LoginOutput } from "./dtos/login.dto";
+import { UseGuards } from "@nestjs/common";
+import { AuthGuard } from "src/auth/auth.guard";
 
 
 @Resolver(of => User)
@@ -37,7 +39,7 @@ export class UsersResolver {
     }
 
     @Query(returns => User)
-    verifyJwt(@Context() context){
-        console.log(context)
+    @UseGuards(AuthGuard)
+    verifyJwt(){
     }
 }

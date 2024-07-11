@@ -77,6 +77,11 @@ export class UsersService {
         }
     }
 
+     /*
+    findById (takes id of user)
+    returns Object(ok,error,token) for mutation output
+    */
+
     async findById(id:number): Promise<User>{
         return this.users.findOne({where:{id}})
     }
