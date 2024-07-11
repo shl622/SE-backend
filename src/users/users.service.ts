@@ -2,9 +2,10 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { User } from "./entities/user.entity";
 import { Injectable } from "@nestjs/common";
-import { CreateAccountInput } from "./dtos/create_account.dto";
+import { CreateAccountInput } from "./dtos/create-account.dto.ts";
 import { LoginInput } from "./dtos/login.dto";
 import { JwtService } from "src/jwt/jwt.service";
+import { EditProfileInput } from "./dtos/edit-profile";
 
 @Injectable()
 export class UsersService {
@@ -84,5 +85,21 @@ export class UsersService {
 
     async findById(id:number): Promise<User>{
         return this.users.findOne({where:{id}})
+    }
+
+    /*
+    editProfile (takes id of user)
+    return updateResult
+    update() is faster, but needs to use BeforeUpdate() for hashing passwords, so use save()
+    */
+    async editProfile(userId:number, {email, password}: EditProfileInput): Promise<User>{
+        const user = await this.users.findOne({where:{id:userId}})
+        if(email){
+            user.email=email
+        }
+        if(password){
+            user.password=password
+        }
+        return this.users.save(user)
     }
 }

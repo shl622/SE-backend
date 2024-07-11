@@ -1,6 +1,6 @@
 import { Field, InputType, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { CoreEntity } from "src/common/entities/core.entity";
-import { BeforeInsert, Column, Entity } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity } from "typeorm";
 import * as bcrypt from "bcrypt";
 import { InternalServerErrorException } from "@nestjs/common";
 import { IsEmail, IsEnum, Length } from "class-validator";
@@ -42,6 +42,7 @@ export class User extends CoreEntity {
     //hash password before adding to DB
     //uses bcrypt- default 10 rounds of salt after hash
     @BeforeInsert()
+    @BeforeUpdate()
     async hashPassWord(): Promise<void> {
         try {
             this.password = await bcrypt.hash(this.password, 10)
