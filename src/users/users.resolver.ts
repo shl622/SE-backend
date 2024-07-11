@@ -5,6 +5,7 @@ import { CreateAccountInput, CreateAccountOutput } from "./dtos/create_account.d
 import { LoginInput, LoginOutput } from "./dtos/login.dto";
 import { UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/auth/auth.guard";
+import { AuthUser } from "src/auth/auth-user.decorator";
 
 
 @Resolver(of => User)
@@ -38,8 +39,11 @@ export class UsersResolver {
         }
     }
 
+    //blocks request if not logged in (no jwt header)
+    //returns user look at auth-user.decorator.ts
     @Query(returns => User)
     @UseGuards(AuthGuard)
-    verifyJwt(){
+    verifyJwt(@AuthUser() authUser:User){
+        return authUser
     }
 }
