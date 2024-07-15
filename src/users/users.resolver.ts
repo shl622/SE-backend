@@ -8,6 +8,7 @@ import { AuthGuard } from "src/auth/auth.guard";
 import { AuthUser } from "src/auth/auth-user.decorator";
 import { UserProfileInput, UserProfileOutput } from "./dtos/user-profile.dto";
 import { EditProfileInput, EditProfileOutput } from "./dtos/edit-profile";
+import { VerifyEmailInput, VerifyEmailOutput } from "./dtos/verify-email.dto";
 
 
 @Resolver(of => User)
@@ -73,7 +74,6 @@ export class UsersResolver {
     }
 
     //user profile crud
-    @UseGuards(AuthGuard)
     @Mutation(returns=>EditProfileOutput)
     async editProfile(@AuthUser() authUser: User, 
     @Args('input') editProfileInput: EditProfileInput): Promise<EditProfileOutput>{
@@ -88,5 +88,11 @@ export class UsersResolver {
                 error
             }
         }
+    }
+
+    //verify email
+    @Mutation(returns => VerifyEmailOutput)
+    verifyEmail(@Args('input') {code}: VerifyEmailInput){
+        this.usersService.verifyEmail(code)
     }
 }
