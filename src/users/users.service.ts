@@ -6,11 +6,13 @@ import { CreateAccountInput } from "./dtos/create-account.dto.ts";
 import { LoginInput } from "./dtos/login.dto";
 import { JwtService } from "src/jwt/jwt.service";
 import { EditProfileInput } from "./dtos/edit-profile";
+import { Verification } from "./entities/verfication.entity";
 
 @Injectable()
 export class UsersService {
     constructor(
         @InjectRepository(User) private readonly users: Repository<User>, 
+        @InjectRepository(Verification) private readonly verifications: Repository<Verification>, 
         private readonly jwtService : JwtService
     ) {}
 
@@ -24,6 +26,7 @@ export class UsersService {
     -> return error
     2.2 if user does not exist (isNew)
     -> create user & hash the password
+    -> add verification
     -> return ok
     */
 
@@ -33,7 +36,11 @@ export class UsersService {
             if (exists) {
                 return {ok:false, error:"User already exists with the email."}
             }
-            await this.users.save(this.users.create({ email, password, role }))
+            const user = await this.users.save(this.users.create({ email, password, role }))
+            await this.verifications.save(this.verifications.create({
+                // code: 12212212, //todo: creates code
+                user
+            }))
             return {ok:true}
         } catch (e) {
             return {ok:false, error:"Failed to create account."}
@@ -96,6 +103,8 @@ export class UsersService {
         const user = await this.users.findOne({where:{id:userId}})
         if(email){
             user.email=email
+            user.verified=false
+            await this.verifications.save(this.verifications.create({user}))
         }
         if(password){
             user.password=password
