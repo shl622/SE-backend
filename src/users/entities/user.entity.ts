@@ -39,6 +39,9 @@ export class User extends CoreEntity {
     @IsEnum(UserRole)
     role: UserRole
 
+    @Column({ default: false }) 
+    @Field(type => Boolean)
+    verified: boolean
     //hash password before adding to DB
     //uses bcrypt- default 10 rounds of salt after hash
     @BeforeInsert()
