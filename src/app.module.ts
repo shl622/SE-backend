@@ -12,6 +12,7 @@ import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
 import { AuthModule } from './auth/auth.module';
 import { Verification } from './users/entities/verfication.entity';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -26,7 +27,10 @@ import { Verification } from './users/entities/verfication.entity';
         DB_USERNAME: Joi.string().required(),
         DB_PASSWORD: Joi.string().required(),
         DB_NAME: Joi.string().required(),
-        PRIVATE_KEY: Joi.string().required()
+        PRIVATE_KEY: Joi.string().required(),
+        MAILGUN_API_KEY: Joi.string().required(),
+        MAILGUN_DOMAIN_NAME: Joi.string().required(),
+        MAILGUN_FROM_EMAIL: Joi.string().required(),
       })
     }),
     TypeOrmModule.forRoot({
@@ -39,15 +43,20 @@ import { Verification } from './users/entities/verfication.entity';
       synchronize: process.env.NODE_ENV !== "prod",
       logging: process.env.NODE_ENV !== "prod",
       namingStrategy: new SnakeNamingStrategy(),
-      entities: [User,Verification],
+      entities: [User, Verification],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
-      context: ({req}) => ({user: req["user"]})
-    }), 
+      context: ({ req }) => ({ user: req["user"] })
+    }),
     JwtModule.forRoot({
       privateKey: process.env.PRIVATE_KEY
+    }),
+    EmailModule.forRoot({
+      apiKey: process.env.MAILGUN_API_KEY,
+      domain: process.env.MAILGUN_DOMAIN_NAME,
+      fromEmail: process.env.MAILGUN_FROM_EMAIL,
     }),
     UsersModule,
   ],
@@ -55,11 +64,11 @@ import { Verification } from './users/entities/verfication.entity';
   providers: [],
 })
 
-export class AppModule implements NestModule{ 
-  configure(consumer:MiddlewareConsumer){
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
     consumer.apply(JwtMiddleware).forRoutes({
-      path:"/graphql",
-      method:RequestMethod.POST
+      path: "/graphql",
+      method: RequestMethod.POST
     })
   }
 }
