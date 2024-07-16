@@ -58,7 +58,7 @@ export class UsersService {
 
     async login({ email, password }: LoginInput): Promise<{ ok: boolean; error?: string; token?: string }> {
         try {
-            const user = await this.users.findOne({ where: { email } })
+            const user = await this.users.findOne({ where: { email }, select: ['id', 'password']})
             if (!user) {
                 return {
                     ok: false,
@@ -116,6 +116,7 @@ export class UsersService {
     verifyEmail
     takes verification code(string) and returns boolean
     have to explicitly tell typeOrm to load the relationship
+    should not save() as User has beforeupdate() that hashes pw
     */
     async verifyEmail(code: string): Promise<boolean> {
         const verification = await this.verifications.findOne({where:{code}, relations:{user:true}})
