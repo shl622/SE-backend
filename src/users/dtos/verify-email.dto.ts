@@ -3,11 +3,7 @@ import { CoreOutput } from "src/common/dto/output.dto";
 import { Verification } from "../entities/verfication.entity";
 
 @ObjectType()
-export class VerifyEmailOutput extends CoreOutput {
-
-}
+export class VerifyEmailOutput extends CoreOutput {}
 
 @InputType()
-export class VerifyEmailInput extends PickType(Verification, ["code"]){
-
-}
+export class VerifyEmailInput extends PickType(Verification, ["code"]){}

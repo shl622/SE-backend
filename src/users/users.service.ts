@@ -2,11 +2,13 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { User } from "./entities/user.entity";
 import { Injectable } from "@nestjs/common";
-import { CreateAccountInput } from "./dtos/create-account.dto.ts";
-import { LoginInput } from "./dtos/login.dto";
+import { CreateAccountInput, CreateAccountOutput } from "./dtos/create-account.dto.ts";
+import { LoginInput, LoginOutput } from "./dtos/login.dto";
 import { JwtService } from "src/jwt/jwt.service";
-import { EditProfileInput } from "./dtos/edit-profile";
+import { EditProfileInput, EditProfileOutput } from "./dtos/edit-profile";
 import { Verification } from "./entities/verfication.entity";
+import { UserProfileOutput } from "./dtos/user-profile.dto";
+import { VerifyEmailOutput } from "./dtos/verify-email.dto";
 
 @Injectable()
 export class UsersService {
@@ -30,7 +32,7 @@ export class UsersService {
     -> return ok
     */
 
-    async createAccount({ email, password, role }: CreateAccountInput): Promise<{ ok: boolean; error?: string }> {
+    async createAccount({ email, password, role }: CreateAccountInput): Promise<CreateAccountOutput> {
         try {
             const exists = await this.users.exists({ where: { email } })
             if (exists) {
@@ -38,7 +40,6 @@ export class UsersService {
             }
             const user = await this.users.save(this.users.create({ email, password, role }))
             await this.verifications.save(this.verifications.create({
-                // code: 12212212, //todo: creates code
                 user
             }))
             return { ok: true }
@@ -56,9 +57,9 @@ export class UsersService {
     3. make a JWT token and give to User
     */
 
-    async login({ email, password }: LoginInput): Promise<{ ok: boolean; error?: string; token?: string }> {
+    async login({ email, password }: LoginInput): Promise<LoginOutput> {
         try {
-            const user = await this.users.findOne({ where: { email } })
+            const user = await this.users.findOne({ where: { email }, select: ['id', 'password'] })
             if (!user) {
                 return {
                     ok: false,
@@ -90,8 +91,21 @@ export class UsersService {
    returns Object(ok,error,token) for mutation output
    */
 
-    async findById(id: number): Promise<User> {
-        return this.users.findOne({ where: { id } })
+    async findById(id: number): Promise<UserProfileOutput> {
+        try {
+            const user = await this.users.findOne({ where: { id } })
+            if (user) {
+                return {
+                    ok: true,
+                    user: user
+                }
+            }
+        } catch (error) {
+            return {
+                ok: false,
+                error: "User not found."
+            }
+        }
     }
 
     /*
@@ -99,30 +113,48 @@ export class UsersService {
     return updateResult
     update() is faster, but needs to use BeforeUpdate() for hashing passwords, so use save()
     */
-    async editProfile(userId: number, { email, password }: EditProfileInput): Promise<User> {
-        const user = await this.users.findOne({ where: { id: userId } })
-        if (email) {
-            user.email = email
-            user.verified = false
-            await this.verifications.save(this.verifications.create({ user }))
+    async editProfile(userId: number, { email, password }: EditProfileInput): Promise<EditProfileOutput> {
+        try {
+            const user = await this.users.findOne({ where: { id: userId } })
+            if (email) {
+                user.email = email
+                user.verified = false
+                await this.verifications.save(this.verifications.create({ user }))
+            }
+            if (password) {
+                user.password = password
+            }
+            await this.users.save(user)
+            return {
+                ok: true
+            }
+        } catch (error) {
+            return {
+                ok: false,
+                error: "Failed to update user profile."
+            }
         }
-        if (password) {
-            user.password = password
-        }
-        return this.users.save(user)
+
     }
 
     /*
     verifyEmail
     takes verification code(string) and returns boolean
     have to explicitly tell typeOrm to load the relationship
+    should not save() as User has beforeupdate() that hashes pw
     */
-    async verifyEmail(code: string): Promise<boolean> {
-        const verification = await this.verifications.findOne({where:{code}, relations:{user:true}})
-        if(verification){
-            verification.user.verified= true
-            this.users.save(verification.user)
+    async verifyEmail(code: string): Promise<VerifyEmailOutput> {
+        try {
+            const verification = await this.verifications.findOne({ where: { code }, relations:['user'] })
+            if (verification) {
+                verification.user.verified = true
+                await this.users.save(verification.user)
+                await this.verifications.delete(verification.id)
+                return { ok:true}
+            }
+            return { ok: false, error: "Verification not found."}
+        } catch (error) {
+            return { ok:false, error}
         }
-        return false
     }
 }
