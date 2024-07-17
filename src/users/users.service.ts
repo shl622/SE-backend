@@ -9,13 +9,17 @@ import { EditProfileInput, EditProfileOutput } from "./dtos/edit-profile";
 import { Verification } from "./entities/verfication.entity";
 import { UserProfileOutput } from "./dtos/user-profile.dto";
 import { VerifyEmailOutput } from "./dtos/verify-email.dto";
+import { EmailService } from "src/email/email.service";
 
 @Injectable()
 export class UsersService {
     constructor(
-        @InjectRepository(User) private readonly users: Repository<User>,
-        @InjectRepository(Verification) private readonly verifications: Repository<Verification>,
-        private readonly jwtService: JwtService
+        @InjectRepository(User)
+        private readonly users: Repository<User>,
+        @InjectRepository(Verification)
+        private readonly verifications: Repository<Verification>,
+        private readonly jwtService: JwtService,
+        private readonly emailService: EmailService
     ) { }
 
     /* 
@@ -28,7 +32,7 @@ export class UsersService {
     -> return error
     2.2 if user does not exist (isNew)
     -> create user & hash the password
-    -> add verification
+    -> add verification, send verification email
     -> return ok
     */
 
@@ -39,9 +43,10 @@ export class UsersService {
                 return { ok: false, error: "User already exists with the email." }
             }
             const user = await this.users.save(this.users.create({ email, password, role }))
-            await this.verifications.save(this.verifications.create({
+            const verification = await this.verifications.save(this.verifications.create({
                 user
             }))
+            this.emailService.sendVerificationEmail(user.email, verification.code)
             return { ok: true }
         } catch (e) {
             return { ok: false, error: "Failed to create account." }
@@ -112,6 +117,7 @@ export class UsersService {
     editProfile (takes id of user)
     return updateResult
     update() is faster, but needs to use BeforeUpdate() for hashing passwords, so use save()
+    when user updates email, send verification code via email again
     */
     async editProfile(userId: number, { email, password }: EditProfileInput): Promise<EditProfileOutput> {
         try {
@@ -119,7 +125,8 @@ export class UsersService {
             if (email) {
                 user.email = email
                 user.verified = false
-                await this.verifications.save(this.verifications.create({ user }))
+                const verification = await this.verifications.save(this.verifications.create({ user }))
+                this.emailService.sendVerificationEmail(user.email, verification.code)
             }
             if (password) {
                 user.password = password
@@ -145,16 +152,16 @@ export class UsersService {
     */
     async verifyEmail(code: string): Promise<VerifyEmailOutput> {
         try {
-            const verification = await this.verifications.findOne({ where: { code }, relations:['user'] })
+            const verification = await this.verifications.findOne({ where: { code }, relations: ['user'] })
             if (verification) {
                 verification.user.verified = true
                 await this.users.save(verification.user)
                 await this.verifications.delete(verification.id)
-                return { ok:true}
+                return { ok: true }
             }
-            return { ok: false, error: "Verification not found."}
+            return { ok: false, error: "Verification not found." }
         } catch (error) {
-            return { ok:false, error}
+            return { ok: false, error }
         }
     }
 }
