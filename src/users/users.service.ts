@@ -12,10 +12,9 @@ import { VerifyEmailOutput } from "./dtos/verify-email.dto";
 import { EmailService } from "src/email/email.service";
 
 @Injectable()
-export class UsersService {
+export class UserService {
     constructor(
-        @InjectRepository(User)
-        private readonly users: Repository<User>,
+        @InjectRepository(User) private readonly users: Repository<User>,
         @InjectRepository(Verification)
         private readonly verifications: Repository<Verification>,
         private readonly jwtService: JwtService,
@@ -38,7 +37,8 @@ export class UsersService {
 
     async createAccount({ email, password, role }: CreateAccountInput): Promise<CreateAccountOutput> {
         try {
-            const exists = await this.users.exists({ where: { email } })
+            const exists = await this.users.findOne({ where: { email } })
+            console.log(exists)
             if (exists) {
                 return { ok: false, error: "User already exists with the email." }
             }
@@ -48,7 +48,8 @@ export class UsersService {
             }))
             this.emailService.sendVerificationEmail(user.email, verification.code)
             return { ok: true }
-        } catch (e) {
+        } catch (error) {
+            console.log(error)
             return { ok: false, error: "Failed to create account." }
         }
     }

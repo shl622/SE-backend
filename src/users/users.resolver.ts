@@ -1,6 +1,6 @@
 import { Args, Context, Mutation, Query, Resolver } from "@nestjs/graphql";
 import { User } from "./entities/user.entity";
-import { UsersService } from "./users.service";
+import { UserService } from "./users.service";
 import { CreateAccountInput, CreateAccountOutput } from "./dtos/create-account.dto.ts";
 import { LoginInput, LoginOutput } from "./dtos/login.dto";
 import { UseGuards } from "@nestjs/common";
@@ -15,7 +15,7 @@ import { VerifyEmailInput, VerifyEmailOutput } from "./dtos/verify-email.dto";
 export class UsersResolver {
 
     constructor(
-        private readonly usersService: UsersService
+        private readonly usersService: UserService
     ) { }
 
     //creates account
