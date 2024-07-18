@@ -97,12 +97,10 @@ export class UserService {
 
     async findById(id: number): Promise<UserProfileOutput> {
         try {
-            const user = await this.users.findOne({ where: { id } })
-            if (user) {
-                return {
-                    ok: true,
-                    user: user
-                }
+            const user = await this.users.findOneOrFail({ where: { id } })
+            return {
+                ok: true,
+                user: user
             }
         } catch (error) {
             return {
@@ -124,6 +122,7 @@ export class UserService {
             if (email) {
                 user.email = email
                 user.verified = false
+                await this.verifications.delete({ user: { id: user.id } })
                 const verification = await this.verifications.save(this.verifications.create({ user }))
                 this.emailService.sendVerificationEmail(user.email, verification.code)
             }

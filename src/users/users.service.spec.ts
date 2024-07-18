@@ -20,16 +20,18 @@ const mockRepository = () => ({
     findOne: jest.fn(),
     save: jest.fn(),
     create: jest.fn(),
+    findOneOrFail: jest.fn(),
+    delete: jest.fn()
 })
 
-const mockJwtService = {
+const mockJwtService = () => ({
     sign: jest.fn(() => "signed-token"),
     verify: jest.fn()
-}
+})
 
-const mockEmailService = {
+const mockEmailService = () => ({
     sendVerificationEmail: jest.fn()
-}
+})
 
 type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>
 
@@ -57,11 +59,11 @@ describe('UserService', () => {
                 },
                 {
                     provide: JwtService,
-                    useValue: mockJwtService,
+                    useValue: mockJwtService(),
                 },
                 {
                     provide: EmailService,
-                    useValue: mockEmailService,
+                    useValue: mockEmailService(),
                 }]
         }).compile()
         service = module.get<UserService>(UserService)
@@ -189,7 +191,77 @@ describe('UserService', () => {
             })
         })
     })
-    it.todo('findById')
-    it.todo('editProfile')
+
+    describe('findById', () => {
+        const findByIdArgs = {
+            id: 1
+        }
+        it('should return existing user', async () => {
+            userRepository.findOneOrFail.mockResolvedValue(findByIdArgs)
+            const result = await service.findById(1)
+            expect(result).toEqual({
+                ok: true,
+                user: findByIdArgs
+            })
+        })
+        it('should fail if user is not found', async () => {
+            userRepository.findOneOrFail.mockRejectedValue(new Error())
+            const result = await service.findById(1)
+            expect(result).toEqual({
+                ok: false,
+                error: "User not found."
+            })
+        })
+    })
+
+    describe('editProfile', () => {
+        it('should update email', async () => {
+            const oldUser = {
+                email: "jest@test.com",
+                verified: true
+            }
+            const editProfileArgs = {
+                userId: 1,
+                input: { email: "jestupdate@test.com" }
+            }
+            const newVerification = {
+                code: 'code'
+            }
+            const updatedUser = {
+                email: "jestupdate@test.com",
+                verified: false
+            }
+            userRepository.findOne.mockResolvedValue(oldUser)
+            verificationRepository.create.mockReturnValue(newVerification)
+            verificationRepository.save.mockReturnValue(newVerification)
+            await service.editProfile(editProfileArgs.userId, editProfileArgs.input)
+            expect(userRepository.findOne).toHaveBeenCalledWith({ where: { id: editProfileArgs.userId } })
+
+            expect(verificationRepository.create).toHaveBeenCalledWith({ user: updatedUser })
+            expect(verificationRepository.save).toHaveBeenCalledWith(newVerification)
+
+            expect(emailService.sendVerificationEmail).toHaveBeenCalledWith(updatedUser.email, newVerification.code)
+        })
+        it('should update password', async () => {
+            const editProfileArgs = {
+                userId: 1,
+                input: { password: "jest.test" }
+            }
+            userRepository.findOne.mockResolvedValue({ password: 'old' })
+            const result = await service.editProfile(editProfileArgs.userId, editProfileArgs.input)
+            expect(userRepository.save).toHaveBeenCalledTimes(1)
+            expect(userRepository.save).toHaveBeenCalledWith(editProfileArgs.input)
+            expect(result).toEqual({ ok: true })
+        })
+        it('should exit on exception', async () => {
+            userRepository.findOne.mockRejectedValue(new Error())
+            const result = await service.editProfile(1, { email: "fail@jest" })
+            expect(result).toEqual({
+                ok: false,
+                error: "Failed to update user profile."
+            })
+        })
+    })
+
     it.todo('verifyEmail')
 })
