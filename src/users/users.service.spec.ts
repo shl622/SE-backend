@@ -23,7 +23,7 @@ const mockRepository = () => ({
 })
 
 const mockJwtService = {
-    sign: jest.fn(),
+    sign: jest.fn(() => "signed-token"),
     verify: jest.fn()
 }
 
@@ -41,6 +41,7 @@ describe('UserService', () => {
     let userRepository: MockRepository<User>
     let verificationRepository: MockRepository<Verification>
     let emailService: EmailService
+    let jwtService: JwtService
 
     beforeEach(async () => {
         const module = await Test.createTestingModule({
@@ -65,6 +66,7 @@ describe('UserService', () => {
         }).compile()
         service = module.get<UserService>(UserService)
         emailService = module.get<EmailService>(EmailService)
+        jwtService = module.get<JwtService>(JwtService)
         userRepository = module.get(getRepositoryToken(User))
         verificationRepository = module.get(getRepositoryToken(Verification))
     })
@@ -156,9 +158,37 @@ describe('UserService', () => {
                 error: "User not found."
             })
         })
+
+        it('should fail if password is incorrect', async () => {
+            const mockedUser = { checkPassword: jest.fn(() => Promise.resolve(false)) }
+            userRepository.findOne.mockResolvedValue(mockedUser)
+            const result = await service.login(loginArgs)
+            expect(result).toEqual({
+                ok: false,
+                error: "Password does not match."
+            })
+        })
+
+        it('should return oken if password is correct', async () => {
+            const mockedUser = {
+                id: 1,
+                checkPassword: jest.fn(() => Promise.resolve(true))
+            }
+            userRepository.findOne.mockResolvedValue(mockedUser)
+            const result = await service.login(loginArgs)
+            expect(jwtService.sign).toHaveBeenCalledTimes(1)
+            expect(jwtService.sign).toHaveBeenCalledWith(expect.any(Number))
+            expect(result).toEqual({ ok: true, token: 'signed-token' })
+        })
+        it('should fail on exception', async () => {
+            userRepository.findOne.mockRejectedValue(Error("exited on error"))
+            const result = await service.login(loginArgs)
+            expect(result).toEqual({
+                ok: false,
+                error: Error("exited on error")
+            })
+        })
     })
-
-
     it.todo('findById')
     it.todo('editProfile')
     it.todo('verifyEmail')
