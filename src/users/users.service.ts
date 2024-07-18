@@ -38,7 +38,6 @@ export class UserService {
     async createAccount({ email, password, role }: CreateAccountInput): Promise<CreateAccountOutput> {
         try {
             const exists = await this.users.findOne({ where: { email } })
-            console.log(exists)
             if (exists) {
                 return { ok: false, error: "User already exists with the email." }
             }
@@ -49,7 +48,6 @@ export class UserService {
             this.emailService.sendVerificationEmail(user.email, verification.code)
             return { ok: true }
         } catch (error) {
-            console.log(error)
             return { ok: false, error: "Failed to create account." }
         }
     }

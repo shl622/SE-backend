@@ -39,6 +39,8 @@ type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>
 describe('UserService', () => {
     let service: UserService
     let userRepository: MockRepository<User>
+    let verificationRepository: MockRepository<Verification>
+    let emailService: EmailService
 
     beforeAll(async () => {
         const module = await Test.createTestingModule({
@@ -62,7 +64,9 @@ describe('UserService', () => {
                 }]
         }).compile()
         service = module.get<UserService>(UserService)
+        emailService = module.get<EmailService>(EmailService)
         userRepository = module.get(getRepositoryToken(User))
+        verificationRepository = module.get(getRepositoryToken(Verification))
     })
 
     //first check the service is created
@@ -72,8 +76,8 @@ describe('UserService', () => {
 
     describe('createAccount', () => {
         const createAccountArgs = {
-            email: '',
-            password: '',
+            email: 'jest@email.com',
+            password: 'jestpw',
             role: 0
         }
         it("should fail if user already exists with identical email", async () => {
@@ -87,11 +91,42 @@ describe('UserService', () => {
             expect(result).toMatchObject({ ok: false, error: "User already exists with the email." })
         })
         it("should create a new user", async () => {
-            // if user DNE with email, createaccount should run
+            // if user DNE with email, createaccount should run with the createAccountArgs
             userRepository.findOne.mockResolvedValue(undefined)
-            await service.createAccount(createAccountArgs)
+            userRepository.create.mockReturnValue(createAccountArgs)
+            userRepository.save.mockResolvedValue(createAccountArgs)
+            verificationRepository.create.mockReturnValue({
+                user: createAccountArgs
+            })
+            verificationRepository.save.mockResolvedValue({
+                code: 'code',
+            })
+            const result = await service.createAccount(createAccountArgs)
             expect(userRepository.create).toHaveBeenCalledTimes(1)
+            expect(userRepository.create).toHaveBeenCalledWith(createAccountArgs)
+
+            expect(userRepository.save).toHaveBeenCalledTimes(1)
+            expect(userRepository.save).toHaveBeenCalledWith(createAccountArgs)
+
+            expect(verificationRepository.create).toHaveBeenCalledTimes(1)
+            expect(verificationRepository.create).toHaveBeenCalledWith({
+                user: createAccountArgs
+            })
+
+            expect(verificationRepository.save).toHaveBeenCalledTimes(1)
+            expect(verificationRepository.save).toHaveBeenCalledWith({
+                user: createAccountArgs
+            })
+
+            expect(emailService.sendVerificationEmail).toHaveBeenCalledTimes(1)
+            expect(emailService.sendVerificationEmail).toHaveBeenCalledWith(
+                expect.any(String),
+                expect.any(String)
+            )
+
+            expect(result).toEqual({ ok: true })
         })
+
     })
 
     it.todo('login')
