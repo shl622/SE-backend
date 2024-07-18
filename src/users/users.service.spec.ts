@@ -92,6 +92,11 @@ describe('UserService', () => {
         })
         it("should create a new user", async () => {
             // if user DNE with email, createaccount should run with the createAccountArgs
+            // check if user is created and saved
+            // check if created user is sent verificaiton and ver is created and saved
+            // check if email is sent for verification
+            // finally check if user is created
+
             userRepository.findOne.mockResolvedValue(undefined)
             userRepository.create.mockReturnValue(createAccountArgs)
             userRepository.save.mockResolvedValue(createAccountArgs)
@@ -125,6 +130,13 @@ describe('UserService', () => {
             )
 
             expect(result).toEqual({ ok: true })
+        })
+
+        //check if createAccount fails in try catch
+        it('should fail on exception', async () => {
+            userRepository.findOne.mockRejectedValue(new Error())
+            const result = await service.createAccount(createAccountArgs)
+            expect(result).toEqual({ ok: false, error: "Failed to create account." })
         })
 
     })
