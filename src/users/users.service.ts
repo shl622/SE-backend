@@ -12,10 +12,9 @@ import { VerifyEmailOutput } from "./dtos/verify-email.dto";
 import { EmailService } from "src/email/email.service";
 
 @Injectable()
-export class UsersService {
+export class UserService {
     constructor(
-        @InjectRepository(User)
-        private readonly users: Repository<User>,
+        @InjectRepository(User) private readonly users: Repository<User>,
         @InjectRepository(Verification)
         private readonly verifications: Repository<Verification>,
         private readonly jwtService: JwtService,
@@ -38,7 +37,7 @@ export class UsersService {
 
     async createAccount({ email, password, role }: CreateAccountInput): Promise<CreateAccountOutput> {
         try {
-            const exists = await this.users.exists({ where: { email } })
+            const exists = await this.users.findOne({ where: { email } })
             if (exists) {
                 return { ok: false, error: "User already exists with the email." }
             }
@@ -48,7 +47,7 @@ export class UsersService {
             }))
             this.emailService.sendVerificationEmail(user.email, verification.code)
             return { ok: true }
-        } catch (e) {
+        } catch (error) {
             return { ok: false, error: "Failed to create account." }
         }
     }
@@ -98,12 +97,10 @@ export class UsersService {
 
     async findById(id: number): Promise<UserProfileOutput> {
         try {
-            const user = await this.users.findOne({ where: { id } })
-            if (user) {
-                return {
-                    ok: true,
-                    user: user
-                }
+            const user = await this.users.findOneOrFail({ where: { id } })
+            return {
+                ok: true,
+                user: user
             }
         } catch (error) {
             return {
@@ -125,6 +122,7 @@ export class UsersService {
             if (email) {
                 user.email = email
                 user.verified = false
+                await this.verifications.delete({ user: { id: user.id } })
                 const verification = await this.verifications.save(this.verifications.create({ user }))
                 this.emailService.sendVerificationEmail(user.email, verification.code)
             }
