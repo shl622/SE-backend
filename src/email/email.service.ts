@@ -11,7 +11,7 @@ export class EmailService {
 
     //mock cURL on Node.js
     //use form data npm
-    private async sendEmail(subject: string, template: string, emailVars: EmailVar[]) {
+    async sendEmail(subject: string, template: string, emailVars: EmailVar[]) {
         const form = new FormData()
         form.append("from", `Brian from Eats <mailgun@${this.options.domain}>`)
         //will default to verified email on mailgun as not paid atm
