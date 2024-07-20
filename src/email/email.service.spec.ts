@@ -36,6 +36,7 @@ describe('EmailService', () => {
             const result = await service.sendEmail('','',[{key:'attr',value:'attrValue'}])
             //first check for new FormData and then append
             const formDataSpy = jest.spyOn(FormData.prototype, 'append')
+            //check that forEach function runs accurately
             expect(formDataSpy).toHaveBeenCalledTimes(5)
             expect(fetch).toHaveBeenCalledTimes(1)
             expect(fetch).toHaveBeenCalledWith(
