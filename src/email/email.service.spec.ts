@@ -5,11 +5,7 @@ import * as FormData from 'form-data';
 import fetch from 'node-fetch'
 
 //mock node-fetch, form-data packages
-// jest.mock('node-fetch',()=>{
-//     return{
-//         fetch: jest.fn(()=>{})
-//     }
-// })
+jest.mock('node-fetch')
 jest.mock('form-data')
 
 const TEST_DOMAIN = 'test-domain'
@@ -36,20 +32,24 @@ describe('EmailService', () => {
     })
 
     describe('sendEmail', () => {
-        it('sends email', () => {
-            const ok = service.sendEmail('','',[])
+        it('sends email', async () => {
+            const result = await service.sendEmail('','',[])
             //first check for new FormData and then append
             const formDataSpy = jest.spyOn(FormData.prototype, 'append')
             expect(formDataSpy).toHaveBeenCalled()
-            // expect(fetch).toHaveBeenCalledTimes(1)
-            // expect(fetch).toHaveBeenCalledWith(
-            //     `https://api.mailgun.net/v3/${TEST_DOMAIN}/messages`,
-            //     expect.any(Object)
-            // )
-            // expect(ok).toEqual(true)
+            expect(fetch).toHaveBeenCalledTimes(1)
+            expect(fetch).toHaveBeenCalledWith(
+                `https://api.mailgun.net/v3/${TEST_DOMAIN}/messages`,
+                expect.any(Object)
+            )
+            expect(result).toEqual(true)
         })
         it('fails on error', async ()=>{
-            // jest.spyOn(fetch,'Request')
+            jest.spyOn(fetch, 'default').mockImplementation(()=>{
+                throw new Error()
+            })
+            const result = await service.sendEmail('','',[])
+            expect(result).toEqual(false)
         })
     })
 
@@ -59,7 +59,7 @@ describe('EmailService', () => {
                 email: 'email',
                 code: 'code'
             }
-            jest.spyOn(service, 'sendEmail').mockImplementation(async () => { true })
+            jest.spyOn(service, 'sendEmail').mockImplementation(async () => true)
             service.sendVerificationEmail(sendVerificationEmailArgs.email, sendVerificationEmailArgs.code)
             expect(service.sendEmail).toHaveBeenCalledTimes(1)
             expect(service.sendEmail).toHaveBeenCalledWith("Verify Your Email", "verify email", [
