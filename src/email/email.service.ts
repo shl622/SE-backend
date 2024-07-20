@@ -4,6 +4,7 @@ import { EmailModuleOptions, EmailVar } from './email.interfaces';
 import * as FormData from 'form-data';
 import fetch from 'node-fetch';
 
+
 @Injectable()
 export class EmailService {
     constructor(@Inject(CONFIG_OPTIONS) private readonly options: EmailModuleOptions) {
@@ -11,7 +12,7 @@ export class EmailService {
 
     //mock cURL on Node.js
     //use form data npm
-    private async sendEmail(subject: string, template: string, emailVars: EmailVar[]) {
+    async sendEmail(subject: string, template: string, emailVars: EmailVar[]): Promise<boolean> {
         const form = new FormData()
         form.append("from", `Brian from Eats <mailgun@${this.options.domain}>`)
         //will default to verified email on mailgun as not paid atm
@@ -27,9 +28,10 @@ export class EmailService {
                 },
                 body: form
             })
+            return true
         }
         catch (error) {
-            console.log(error)
+            return false
         }
     }
 
