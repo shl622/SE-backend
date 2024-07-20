@@ -1,6 +1,6 @@
 # Eats App
 
-Backend of Eats App
+Backend of Eats App built with NestJS
 
 ## Local Development
 A localhost graphQL playground should initiate.
