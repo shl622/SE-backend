@@ -33,10 +33,10 @@ describe('EmailService', () => {
 
     describe('sendEmail', () => {
         it('sends email', async () => {
-            const result = await service.sendEmail('','',[])
+            const result = await service.sendEmail('','',[{key:'attr',value:'attrValue'}])
             //first check for new FormData and then append
             const formDataSpy = jest.spyOn(FormData.prototype, 'append')
-            expect(formDataSpy).toHaveBeenCalled()
+            expect(formDataSpy).toHaveBeenCalledTimes(5)
             expect(fetch).toHaveBeenCalledTimes(1)
             expect(fetch).toHaveBeenCalledWith(
                 `https://api.mailgun.net/v3/${TEST_DOMAIN}/messages`,
