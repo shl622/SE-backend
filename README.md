@@ -2,6 +2,22 @@
 
 Backend of Eats App
 
+## Local Development
+A localhost graphQL playground should initiate.
+</br>
+Requires PostgreSQL server running.
+```(bash)
+npm install 
+npm run start:dev
+```
+
+## Testing Functions
+Use watch to run all unit tests and cov for coverage.
+```
+npm run test:watch
+npm run test:cov
+```
+
 ## User Model:
 
 -   id
