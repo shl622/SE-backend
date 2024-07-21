@@ -7,6 +7,10 @@ import { User } from 'src/users/entities/user.entity';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { error } from 'console';
 
+/*
+End-to-End testing of user.resolver
+*/
+
 //mock fetch so email is not sent on every test
 jest.mock("node-fetch", () => {
   return {
@@ -249,7 +253,7 @@ describe('UserModule (e2e)', () => {
           expect(userProfile).toEqual({ ok: true, user: { id: userId }, error: null })
         })
     })
-    it('should not find a profile',()=>{
+    it('should not find a profile', () => {
       return request(app.getHttpServer())
         .post(GRAPHQL_ENDPOINT)
         .set("X-JWT", jwtToken)
@@ -277,7 +281,57 @@ describe('UserModule (e2e)', () => {
     })
   })
 
-  it.todo('currAuth')
+  describe('currAuth', () => {
+    it('should find my profile if logged in', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .set('X-JWT', jwtToken)
+        .send({
+          query:
+            `{
+          currAuth{
+            email
+          }
+        }`
+        })
+        .expect(200)
+        .expect(res => {
+          console.log(res.body)
+          const {
+            body: {
+              data: {
+                currAuth: {
+                  email
+                }
+              }
+            }
+          } = res
+          expect(email).toBe(testUser.email)
+        })
+    })
+
+    it('should fail if user is not logged in', ()=>{
+      return request(app.getHttpServer())
+      .post(GRAPHQL_ENDPOINT)
+      .send({
+        query:
+          `{
+        currAuth{
+          email
+        }
+      }`
+      })
+      .expect(200)
+      .expect(res => {
+        console.log(res.body)
+        const{
+          body:{error}
+        } = res
+        expect(error).toBe(undefined)
+      })
+    })
+  })
+
   it.todo('verifyEmail')
   it.todo('editProfile')
 
