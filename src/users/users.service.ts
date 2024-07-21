@@ -1,5 +1,5 @@
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Not, Repository } from "typeorm";
 import { User } from "./entities/user.entity";
 import { Injectable } from "@nestjs/common";
 import { CreateAccountInput, CreateAccountOutput } from "./dtos/create-account.dto.ts";
@@ -118,8 +118,16 @@ export class UserService {
     */
     async editProfile(userId: number, { email, password }: EditProfileInput): Promise<EditProfileOutput> {
         try {
+            console.log(userId)
             const user = await this.users.findOne({ where: { id: userId } })
             if (email) {
+                const exist = await this.users.exists({ where: { email, id: Not(userId) } })
+                if(exist){
+                    return{
+                        ok:false,
+                        error: "Email is already in use."
+                    }
+                }
                 user.email = email
                 user.verified = false
                 await this.verifications.delete({ user: { id: user.id } })
