@@ -5,6 +5,8 @@ Backend of Eats App built with NestJS
 ## Local Development
 A localhost graphQL playground should initiate.
 </br>
+Make sure to include a <code>.env.dev</code> file at root.
+</br>
 Requires PostgreSQL server running.
 ```(bash)
 npm install 
@@ -16,6 +18,11 @@ Use watch to run all unit tests and cov for coverage.
 ```
 npm run test:watch
 npm run test:cov
+```
+For E2E testing:<br/>
+Make sure to include a <code>.env.test</code> file at root.
+```
+npm run test:e2e
 ```
 
 ## User Model:
