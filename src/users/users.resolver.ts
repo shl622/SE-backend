@@ -35,7 +35,6 @@ export class UsersResolver {
     @Query(returns => User)
     @UseGuards(AuthGuard)
     currAuth(@AuthUser() authUser: User) {
-        console.log("authuser",authUser)
         return authUser
     }
 
