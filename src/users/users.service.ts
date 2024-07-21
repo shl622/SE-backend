@@ -118,7 +118,6 @@ export class UserService {
     */
     async editProfile(userId: number, { email, password }: EditProfileInput): Promise<EditProfileOutput> {
         try {
-            console.log(userId)
             const user = await this.users.findOne({ where: { id: userId } })
             if (email) {
                 const exist = await this.users.exists({ where: { email, id: Not(userId) } })
@@ -127,12 +126,13 @@ export class UserService {
                         ok:false,
                         error: "Email is already in use."
                     }
+                }else{
+                    user.email = email
+                    user.verified = false
+                    await this.verifications.delete({ user: { id: user.id } })
+                    const verification = await this.verifications.save(this.verifications.create({ user }))
+                    this.emailService.sendVerificationEmail(user.email, verification.code)
                 }
-                user.email = email
-                user.verified = false
-                await this.verifications.delete({ user: { id: user.id } })
-                const verification = await this.verifications.save(this.verifications.create({ user }))
-                this.emailService.sendVerificationEmail(user.email, verification.code)
             }
             if (password) {
                 user.password = password

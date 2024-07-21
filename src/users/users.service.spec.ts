@@ -5,7 +5,7 @@ import { User } from "./entities/user.entity"
 import { Verification } from "./entities/verfication.entity"
 import { JwtService } from "src/jwt/jwt.service"
 import { EmailService } from "src/email/email.service"
-import { Repository } from "typeorm"
+import { Not, Repository } from "typeorm"
 
 /*
     test all functions in userService
@@ -21,7 +21,8 @@ const mockRepository = () => ({
     save: jest.fn(),
     create: jest.fn(),
     findOneOrFail: jest.fn(),
-    delete: jest.fn()
+    delete: jest.fn(),
+    exists: jest.fn()
 })
 
 const mockJwtService = () => ({
@@ -232,9 +233,10 @@ describe('UserService', () => {
                 verified: false
             }
             userRepository.findOne.mockResolvedValue(oldUser)
+            userRepository.exists.mockResolvedValue(null)
             verificationRepository.delete({ user: { id: editProfileArgs.userId } })
             verificationRepository.create.mockReturnValue(newVerification)
-            verificationRepository.save.mockReturnValue(newVerification)
+            verificationRepository.save.mockResolvedValue(newVerification)
             await service.editProfile(editProfileArgs.userId, editProfileArgs.input)
             expect(userRepository.findOne).toHaveBeenCalledWith({ where: { id: editProfileArgs.userId } })
 
@@ -243,6 +245,29 @@ describe('UserService', () => {
             expect(verificationRepository.save).toHaveBeenCalledWith(newVerification)
 
             expect(emailService.sendVerificationEmail).toHaveBeenCalledWith(updatedUser.email, newVerification.code)
+        })
+        it('should check if updating email already exists', async () => {
+            const oldUser = {
+                email: "jest@test.com",
+                verified: true
+            }
+            const existingUser = {
+                email: "exist@test.com",
+                userId: 2
+            }
+            const editProfileArgs = {
+                userId: 1,
+                input: { email: existingUser.email }
+            }
+            userRepository.findOne.mockResolvedValue(oldUser)
+            userRepository.exists.mockResolvedValue(existingUser)
+            const result = await service.editProfile(editProfileArgs.userId, editProfileArgs.input)
+            expect(userRepository.findOne).toHaveBeenCalledWith({ where: { id: editProfileArgs.userId } })
+            expect(userRepository.exists).toHaveBeenCalledWith({ where: { email: editProfileArgs.input.email, id: Not(editProfileArgs.userId) } })
+            expect(result).toEqual({
+                ok: false,
+                error: 'Email is already in use.'
+            })
         })
         it('should update password', async () => {
             const editProfileArgs = {
