@@ -14,6 +14,7 @@ import { EmailModule } from './email/email.module';
 import { Restaurant } from './restaurants/entities/restaurant.entity';
 import { Category } from './restaurants/entities/category.entity';
 import { RestaurantsModule } from './restaurants/restaurants.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -60,7 +61,8 @@ import { RestaurantsModule } from './restaurants/restaurants.module';
       fromEmail: process.env.MAILGUN_FROM_EMAIL,
     }),
     UsersModule,
-    RestaurantsModule
+    RestaurantsModule,
+    AuthModule
   ],
   controllers: [],
   providers: [],

@@ -5,7 +5,7 @@ import { Column, Entity, ManyToOne } from "typeorm";
 import { Category } from "./category.entity";
 import { User } from "src/users/entities/user.entity";
 
-@InputType('RestaurantInputType',{ isAbstract: true })
+@InputType('RestaurantInputType', { isAbstract: true })
 @ObjectType()
 @Entity()
 export class Restaurant extends CoreEntity {
@@ -27,13 +27,13 @@ export class Restaurant extends CoreEntity {
     address: string
 
     //if category is deleted, don't delete the restaurant and set as null
-    @Field(type => Category, {nullable:true})
-    @ManyToOne(type=>Category, category => category.restaurants, {nullable:true, onDelete: 'SET NULL'})
+    @Field(type => Category, { nullable: true })
+    @ManyToOne(type => Category, category => category.restaurants, { nullable: true, onDelete: 'SET NULL' })
     category: Category
 
     //restaurant must have a user (Owner)
     //Owner may have many restaurants, but only one owner per restaurant
     @Field(type => User)
-    @ManyToOne(type=>User, user => user.restaurants)
+    @ManyToOne(type => User, user => user.restaurants, { onDelete: 'CASCADE' })
     owner: User
 }

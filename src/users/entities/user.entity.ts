@@ -5,22 +5,16 @@ import * as bcrypt from "bcrypt";
 import { InternalServerErrorException } from "@nestjs/common";
 import { IsBoolean, IsEmail, IsEnum, IsString, Length } from "class-validator";
 import { Restaurant } from "src/restaurants/entities/restaurant.entity";
-/*
-    user-specific entity
-    - email
-    - role (client, owner, delivery)
-    - password
-*/
 
-enum UserRole {
-    Owner,
-    Client,
-    Delivery
+export enum UserRole {
+    Owner = "OWNER",
+    Client = "CLIENT",
+    Delivery = "DELIVERY"
 }
 
 registerEnumType(UserRole, { name: "UserRole" })
 
-@InputType('UserInputType',{ isAbstract: true })
+@InputType('UserInputType', { isAbstract: true })
 @ObjectType()
 @Entity()
 export class User extends CoreEntity {
@@ -47,8 +41,8 @@ export class User extends CoreEntity {
     verified: boolean
 
     //Owner may have many restaurants
-    @Field(type=> [Restaurant])
-    @OneToMany(type=>Restaurant, restaurant  => restaurant.owner)
+    @Field(type => [Restaurant])
+    @OneToMany(type => Restaurant, restaurant => restaurant.owner)
     restaurants: Restaurant[]
 
 
