@@ -1,39 +1,22 @@
 import { Args, Mutation, Query } from "@nestjs/graphql";
 import { Resolver } from "@nestjs/graphql";
 import { Restaurant } from "./entities/restaurant.entity";
-import { CreateRestaurantDto } from "./dto/create-restaurant.dto";
+import { CreatesRestaurantInput, CreatesRestaurantOutput } from "./dto/create-restaurant.dto";
 import { RestaurantService } from "./restaurants.service";
-import { UpdateRestaurantDto } from "./dto/update-restaurant.dto";
+import { AuthUser } from "src/auth/auth-user.decorator";
+import { User } from "src/users/entities/user.entity";
+import { Role } from "src/auth/role.decorator";
 
 @Resolver(of => Restaurant)
 export class RestaurantResolver {
-    constructor(private readonly restaurantService: RestaurantService) {}
-    @Query(returns => [Restaurant])
-    restaurants(): Promise<Restaurant[]> {
-        return this.restaurantService.getAll()
-    }
-    @Mutation(returns => Boolean)
-    async createRestaurant(@Args('input') createRestuarntDto: CreateRestaurantDto): Promise<boolean> {
-        try{
-            await this.restaurantService.createRestaurant(createRestuarntDto)
-            return true
-        }catch(e){
-            console.log(e)
-            return false
-        }
-    }
+    constructor(private readonly restaurantService: RestaurantService) { }
 
-    @Mutation(returns => Boolean)
-    async updateRestaurant(
-        @Args('input') updateRestaurantDto: UpdateRestaurantDto
-    ): Promise<boolean>{
-        try{
-            await this.restaurantService.updateRestauarnt(updateRestaurantDto)
-            return true
-        }catch(e){
-            console.log(e)
-            return false
-        }
+    @Mutation(returns => CreatesRestaurantOutput)
+    //role-based authentication- limits to Owner
+    @Role(['Owner'])
+    async createRestaurant(
+        @AuthUser()  authUser: User,
+        @Args('input') createRestaurantInput: CreatesRestaurantInput): Promise<CreatesRestaurantOutput> {
+        return this.restaurantService.createRestaurant(authUser,createRestaurantInput)
     }
 }
-

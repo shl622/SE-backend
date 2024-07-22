@@ -11,6 +11,10 @@ import { JwtModule } from './jwt/jwt.module';
 import { JwtMiddleware } from './jwt/jwt.middleware';
 import { Verification } from './users/entities/verfication.entity';
 import { EmailModule } from './email/email.module';
+import { Restaurant } from './restaurants/entities/restaurant.entity';
+import { Category } from './restaurants/entities/category.entity';
+import { RestaurantsModule } from './restaurants/restaurants.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -41,7 +45,7 @@ import { EmailModule } from './email/email.module';
       synchronize: process.env.NODE_ENV !== "prod",
       logging: process.env.NODE_ENV !== "prod" && process.env.NODE_ENV !== 'test',
       namingStrategy: new SnakeNamingStrategy(),
-      entities: [User, Verification],
+      entities: [User, Verification, Restaurant, Category],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -57,6 +61,8 @@ import { EmailModule } from './email/email.module';
       fromEmail: process.env.MAILGUN_FROM_EMAIL,
     }),
     UsersModule,
+    RestaurantsModule,
+    AuthModule
   ],
   controllers: [],
   providers: [],

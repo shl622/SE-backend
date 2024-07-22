@@ -9,6 +9,7 @@ import { AuthUser } from "src/auth/auth-user.decorator";
 import { UserProfileInput, UserProfileOutput } from "./dtos/user-profile.dto";
 import { EditProfileInput, EditProfileOutput } from "./dtos/edit-profile";
 import { VerifyEmailInput, VerifyEmailOutput } from "./dtos/verify-email.dto";
+import { Role } from "src/auth/role.decorator";
 
 
 @Resolver(of => User)
@@ -33,13 +34,13 @@ export class UsersResolver {
     //blocks request if not logged in (no jwt header)
     //returns user look at auth-user.decorator.ts
     @Query(returns => User)
-    @UseGuards(AuthGuard)
+    @Role(['Any'])
     currAuth(@AuthUser() authUser: User) {
         return authUser
     }
 
     //checks if user exists before accessing user profile
-    @UseGuards(AuthGuard)
+    @Role(['Any'])
     @Query(returns => UserProfileOutput)
     async userProfile(@Args() userProfileInput: UserProfileInput): Promise<UserProfileOutput> {
         return this.usersService.findById(userProfileInput.userId)
@@ -47,7 +48,9 @@ export class UsersResolver {
 
     //user profile crud
     @Mutation(returns => EditProfileOutput)
-    async editProfile(@AuthUser() authUser: User,
+    @Role(['Any'])
+    async editProfile(
+        @AuthUser() authUser: User,
         @Args('input') editProfileInput: EditProfileInput): Promise<EditProfileOutput> {
         return this.usersService.editProfile(authUser.id, editProfileInput)
     }
