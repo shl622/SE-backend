@@ -23,12 +23,15 @@ export class RestaurantService {
         try {
             const newRestaurant = this.restaurants.create(createRestaurantInput)
             newRestaurant.owner = owner
+
             //slug implementation for category input
             //remove whitespace and format to lowercase
             //remove all space between and join with -
             const categoryName = createRestaurantInput.categoryName.trim().toLowerCase()
             const categorySlug = categoryName.replace(/ /g, '-')
+
             //try create category or find
+            //if category doesn't exist, create new one and else apply category
             let category = await this.categories.findOne({ where: { slug: categorySlug } })
             if (!category) {
                 category = await this.categories.save(this.categories.create({ slug: categorySlug, name: categoryName }))

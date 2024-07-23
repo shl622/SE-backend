@@ -49,3 +49,17 @@ npm run test:e2e
 -   category
 -   address
 -   coverImage
+
+## Restaurant CRUD:
+
+-   View categories
+-   View Restaurants by Category (pagination)
+-   View Restaurants (pagination)
+-   View Restaurant
+
+-   Edit Restaurant
+-   Delete Restaurant
+
+-   Create Menu
+-   Edit Menu
+-   Delete Menu
