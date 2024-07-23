@@ -12,6 +12,8 @@ import { EditRestaurantInput, EditRestaurantOutput } from "./dto/edit-restaurant
 export class RestaurantResolver {
     constructor(private readonly restaurantService: RestaurantService) { }
 
+
+    //create Restaurant
     @Mutation(returns => CreatesRestaurantOutput)
     //role-based authentication- limits to Owner
     @Role(['Owner'])
@@ -21,6 +23,7 @@ export class RestaurantResolver {
         return this.restaurantService.createRestaurant(authUser, createRestaurantInput)
     }
 
+    //edit Restaurant
     @Mutation(returns => EditRestaurantOutput)
     @Role(['Owner'])
     editRestaurant(
