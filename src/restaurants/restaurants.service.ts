@@ -10,6 +10,7 @@ import { CategoryRepository } from "./repositories/cateogry.repository";
 import { DeleteRestaurantInput, DeleteRestaurantOutput } from "./dto/delete-restaurant.dto";
 import { AllCategoriesOutput } from "./dto/all-categories.dto";
 import { CategoryInput } from "./dto/category.dto";
+import { RestaurantsInput, RestaurantsOutput } from "./dto/restaurants.dto";
 
 @Injectable()
 export class RestaurantService {
@@ -145,12 +146,29 @@ export class RestaurantService {
                 ok: true,
                 restaurants,
                 category,
-                totalPages: Math.ceil(totalResults/25)
+                totalPages: Math.ceil(totalResults / 25)
             }
         } catch {
             return {
                 ok: false,
                 error: 'Failed to load category.'
+            }
+        }
+    }
+
+    async allRestaurants({ page }: RestaurantsInput): Promise<RestaurantsOutput> {
+        try {
+            const [restaurants, totalResults] = await this.restaurants.findAndCount({ skip: (page - 1) * 25, take: 25 })
+            return {
+                ok: true,
+                results: restaurants,
+                totalPages: Math.ceil(totalResults / 25),
+                totalResults
+            }
+        } catch {
+            return {
+                ok: false,
+                error: 'Failed to load restaurants.'
             }
         }
     }

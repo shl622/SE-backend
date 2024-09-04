@@ -11,6 +11,7 @@ import { DeleteRestaurantInput, DeleteRestaurantOutput } from "./dto/delete-rest
 import { Category } from "./entities/category.entity";
 import { AllCategoriesOutput } from "./dto/all-categories.dto";
 import { CategoryInput, CategoryOutput } from "./dto/category.dto";
+import { RestaurantsInput, RestaurantsOutput } from "./dto/restaurants.dto";
 
 @Resolver(of => Restaurant)
 export class RestaurantResolver {
@@ -43,6 +44,11 @@ export class RestaurantResolver {
         @Args('input') deleteRestaurantInput: DeleteRestaurantInput
     ): Promise<DeleteRestaurantOutput> {
         return this.restaurantService.deleteRestaurant(owner, deleteRestaurantInput)
+    }
+
+    @Query(returns=> RestaurantsOutput)
+    restaurants(@Args('input') restaurantsInput: RestaurantsInput): Promise<RestaurantsOutput>{
+        return this.restaurantService.allRestaurants(restaurantsInput)
     }
 }
 
