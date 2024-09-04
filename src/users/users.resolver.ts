@@ -3,8 +3,6 @@ import { User } from "./entities/user.entity";
 import { UserService } from "./users.service";
 import { CreateAccountInput, CreateAccountOutput } from "./dtos/create-account.dto.ts";
 import { LoginInput, LoginOutput } from "./dtos/login.dto";
-import { UseGuards } from "@nestjs/common";
-import { AuthGuard } from "src/auth/auth.guard";
 import { AuthUser } from "src/auth/auth-user.decorator";
 import { UserProfileInput, UserProfileOutput } from "./dtos/user-profile.dto";
 import { EditProfileInput, EditProfileOutput } from "./dtos/edit-profile";
