@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Restaurant } from "./entities/restaurant.entity";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Like, Repository } from "typeorm";
 import { CreatesRestaurantInput, CreatesRestaurantOutput } from "./dto/create-restaurant.dto";
 import { User } from "src/users/entities/user.entity";
 import { Category } from "./entities/category.entity";
@@ -11,6 +11,8 @@ import { DeleteRestaurantInput, DeleteRestaurantOutput } from "./dto/delete-rest
 import { AllCategoriesOutput } from "./dto/all-categories.dto";
 import { CategoryInput } from "./dto/category.dto";
 import { RestaurantsInput, RestaurantsOutput } from "./dto/restaurants.dto";
+import { RestaurantInput, RestaurantOutput } from "./dto/restaurant.dto";
+import { SearchRestaurantInput, SearchRestaurantOutput } from "./dto/search-restaurant.dto";
 
 @Injectable()
 export class RestaurantService {
@@ -169,6 +171,48 @@ export class RestaurantService {
             return {
                 ok: false,
                 error: 'Failed to load restaurants.'
+            }
+        }
+    }
+
+    async findRestaurantById({ restaurantId }: RestaurantInput): Promise<RestaurantOutput> {
+        try {
+            const restaurant = await this.restaurants.findOne({ where: { id: restaurantId } })
+            if (!restaurant) {
+                return {
+                    ok: false,
+                    error: 'Failed to find restaurant.'
+                }
+            }
+            return {
+                ok: true,
+                restaurant
+            }
+        } catch {
+            return {
+                ok: false,
+                error: 'Search failed due to an unknown error.'
+            }
+        }
+    }
+
+    async searchRestaurantByName({ query, page }: SearchRestaurantInput): Promise<SearchRestaurantOutput> {
+        try {
+            const [restaurants, totalResults] = await this.restaurants.findAndCount({
+                where: { name: Like(`%${query}%`) }, 
+                skip: (page - 1) * 25, 
+                take: 25
+            })
+            return {
+                ok: true,
+                restaurants,
+                totalPages: Math.ceil(totalResults / 25),
+                totalResults
+            }
+        } catch {
+            return {
+                ok: false,
+                error: 'Search failed due to an unknown error.'
             }
         }
     }
