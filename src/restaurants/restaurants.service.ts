@@ -7,6 +7,7 @@ import { User } from "src/users/entities/user.entity";
 import { Category } from "./entities/category.entity";
 import { EditRestaurantInput, EditRestaurantOutput } from "./dto/edit-restaurant.dto";
 import { CategoryRepository } from "./repositories/cateogry.repository";
+import { DeleteRestaurantInput, DeleteRestaurantOutput } from "./dto/delete-restaurant.dto";
 
 @Injectable()
 export class RestaurantService {
@@ -76,6 +77,33 @@ export class RestaurantService {
             return {
                 ok: false,
                 error: 'Failed to edit restaurant.'
+            }
+        }
+    }
+
+    async deleteRestaurant(owner: User, {restaurantId}: DeleteRestaurantInput): Promise<DeleteRestaurantOutput> {
+        const restaurant = await this.restaurants.findOne({ where: { id: restaurantId } })
+        try {
+            if (!restaurant) {
+                return {
+                    ok: false,
+                    error: 'Restaurant not found.'
+                }
+            }
+            if (owner.id !== restaurant.ownerId) {
+                return {
+                    ok: false,
+                    error: 'Must be an owner to delete restaurant.'
+                }
+            }
+            await this.restaurants.delete(restaurantId)
+            return{
+                ok:true,
+            }
+        } catch {
+            return {
+                ok: false,
+                error: 'Failed to delete restaurant'
             }
         }
     }
