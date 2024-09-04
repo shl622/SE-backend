@@ -140,10 +140,10 @@ export class RestaurantService {
             }
             //use find and combine take,skip instead of loading relations for db optimization
             const restaurants = await this.restaurants.find({ where: { category: { id: category.id } }, take: 25, skip: (page - 1) * 25 })
-            category.restaurants = restaurants
             const totalResults = await this.countRestaurants(category)
             return {
                 ok: true,
+                restaurants,
                 category,
                 totalPages: Math.ceil(totalResults/25)
             }
