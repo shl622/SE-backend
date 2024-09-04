@@ -129,21 +129,23 @@ export class RestaurantService {
         return this.restaurants.count({ where: { categoryId: category.id } })
     }
 
-    async findCategoryBySlug({ slug }: CategoryInput) {
+    async findCategoryBySlug({ slug, page }: CategoryInput) {
         try {
-            const category = await this.categories.findOne({ 
-                where: { slug: slug },
-                relations:['restaurants']
-             })
-            if(!category){
-                return{
-                    ok:false,
-                    error:'Category not found'
+            const category = await this.categories.findOne({ where: { slug: slug } })
+            if (!category) {
+                return {
+                    ok: false,
+                    error: 'Category not found'
                 }
             }
-            return{
-                ok:true,
-                category
+            //use find and combine take,skip instead of loading relations for db optimization
+            const restaurants = await this.restaurants.find({ where: { category: { id: category.id } }, take: 25, skip: (page - 1) * 25 })
+            category.restaurants = restaurants
+            const totalResults = await this.countRestaurants(category)
+            return {
+                ok: true,
+                category,
+                totalPages: Math.ceil(totalResults/25)
             }
         } catch {
             return {
