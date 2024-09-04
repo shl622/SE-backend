@@ -82,7 +82,7 @@ export class RestaurantService {
         }
     }
 
-    async deleteRestaurant(owner: User, {restaurantId}: DeleteRestaurantInput): Promise<DeleteRestaurantOutput> {
+    async deleteRestaurant(owner: User, { restaurantId }: DeleteRestaurantInput): Promise<DeleteRestaurantOutput> {
         const restaurant = await this.restaurants.findOne({ where: { id: restaurantId } })
         try {
             if (!restaurant) {
@@ -98,8 +98,8 @@ export class RestaurantService {
                 }
             }
             await this.restaurants.delete(restaurantId)
-            return{
-                ok:true,
+            return {
+                ok: true,
             }
         } catch {
             return {
@@ -109,18 +109,22 @@ export class RestaurantService {
         }
     }
 
-    async allCategories(): Promise<AllCategoriesOutput>{
-        try{
+    async allCategories(): Promise<AllCategoriesOutput> {
+        try {
             const categories = await this.categories.find()
-            return{
-                ok:true,
+            return {
+                ok: true,
                 categories
             }
-        }catch{
-            return{
-                ok:false,
-                error:"Failed to load categories."
+        } catch {
+            return {
+                ok: false,
+                error: "Failed to load categories."
             }
         }
+    }
+
+    countRestaurants(category: Category) {
+        return this.restaurants.count({ where: {categoryId:category.id} })
     }
 }

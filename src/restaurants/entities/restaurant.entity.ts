@@ -31,6 +31,9 @@ export class Restaurant extends CoreEntity {
     @ManyToOne(type => Category, category => category.restaurants, { nullable: true, onDelete: 'SET NULL' })
     category: Category
 
+    @Column()
+    categoryId: number
+
     //restaurant must have a user (Owner)
     //Owner may have many restaurants, but only one owner per restaurant
     @Field(type => User)
@@ -38,6 +41,6 @@ export class Restaurant extends CoreEntity {
     owner: User
 
     //preload relation but only load user Id instead of whole user object
-    @RelationId((restaurant:Restaurant)=> restaurant.owner)
+    @RelationId((restaurant: Restaurant) => restaurant.owner)
     ownerId: number
 }

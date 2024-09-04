@@ -1,4 +1,4 @@
-import { Args, Mutation, Query } from "@nestjs/graphql";
+import { Args, Int, Mutation, Parent, Query, ResolveField } from "@nestjs/graphql";
 import { Resolver } from "@nestjs/graphql";
 import { Restaurant } from "./entities/restaurant.entity";
 import { CreatesRestaurantInput, CreatesRestaurantOutput } from "./dto/create-restaurant.dto";
@@ -50,6 +50,12 @@ export class RestaurantResolver {
 export class CategoryResolver {
     constructor(private readonly restaurantService: RestaurantService){}
     
+    //dynamic field for getting number of restaurants per category
+    @ResolveField(type=> Int)
+    restaurantCount(@Parent() category: Category): Promise<number>{
+        return this.restaurantService.countRestaurants(category)
+    }
+
     @Query(type=>AllCategoriesOutput)
     allCategories():Promise<AllCategoriesOutput>{
         return this.restaurantService.allCategories()
