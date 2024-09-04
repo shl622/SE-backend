@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Restaurant } from "./entities/restaurant.entity";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Like, Repository } from "typeorm";
+import { Like, Raw, Repository } from "typeorm";
 import { CreatesRestaurantInput, CreatesRestaurantOutput } from "./dto/create-restaurant.dto";
 import { User } from "src/users/entities/user.entity";
 import { Category } from "./entities/category.entity";
@@ -199,7 +199,7 @@ export class RestaurantService {
     async searchRestaurantByName({ query, page }: SearchRestaurantInput): Promise<SearchRestaurantOutput> {
         try {
             const [restaurants, totalResults] = await this.restaurants.findAndCount({
-                where: { name: Like(`%${query}%`) }, 
+                where: { name: Raw(name=>`${name} ILIKE '%${query}%'`) }, 
                 skip: (page - 1) * 25, 
                 take: 25
             })
