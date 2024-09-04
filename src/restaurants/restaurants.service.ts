@@ -6,14 +6,14 @@ import { CreatesRestaurantInput, CreatesRestaurantOutput } from "./dto/create-re
 import { User } from "src/users/entities/user.entity";
 import { Category } from "./entities/category.entity";
 import { EditRestaurantInput, EditRestaurantOutput } from "./dto/edit-restaurant.dto";
+import { CategoryRepository } from "./repositories/cateogry.repository";
 
 @Injectable()
 export class RestaurantService {
     constructor(
         @InjectRepository(Restaurant)
         private readonly restaurants: Repository<Restaurant>,
-        @InjectRepository(Category)
-        private readonly categories: Repository<Category>
+        private readonly categories: CategoryRepository
     ) { }
 
 
@@ -25,7 +25,7 @@ export class RestaurantService {
             console.log(owner.role)
             const newRestaurant = this.restaurants.create(createRestaurantInput)
             newRestaurant.owner = owner
-            const category = await this.getOrCreateCategory(createRestaurantInput.categoryName)
+            const category = await this.categories.getOrCreate(createRestaurantInput.categoryName)
             newRestaurant.category = category
             await this.restaurants.save(newRestaurant)
             return {
@@ -37,22 +37,6 @@ export class RestaurantService {
                 error: 'Could not create restaurant.'
             }
         }
-    }
-
-    async getOrCreateCategory(name: string): Promise<Category> {
-        //slug implementation for category input
-        //remove whitespace and format to lowercase
-        //remove all space between and join with -
-        const categoryName = name.trim().toLowerCase()
-        const categorySlug = categoryName.replace(/ /g, '-')
-
-        //try create category or find
-        //if category doesn't exist, create new one and else apply category
-        let category = await this.categories.findOne({ where: { slug: categorySlug } })
-        if (!category) {
-            category = await this.categories.save(this.categories.create({ slug: categorySlug, name: categoryName }))
-        }
-        return category
     }
 
     async editRestaurant(
@@ -75,8 +59,20 @@ export class RestaurantService {
                     error: 'Must be an owner to edit restaurant.'
                 }
             }
+            let category: Category = null
+            if (editRestaurantInput.categoryName) {
+                category = await this.categories.getOrCreate(editRestaurantInput.categoryName)
+            }
+            await this.restaurants.save([{
+                id: editRestaurantInput.restaurantId,
+                ...editRestaurantInput,
+                //optionally if category exists, return an object that has category=category
+                //if category is null, do not update
+                ...(category && { category })
+            }])
             return { ok: true }
         } catch (e) {
+            console.log(e)
             return {
                 ok: false,
                 error: 'Failed to edit restaurant.'

@@ -28,6 +28,6 @@ export class RestaurantResolver {
         @AuthUser() owner: User,
         @Args('input') editRestaurantInput: EditRestaurantInput
     ): Promise<EditRestaurantOutput> {
-        return this.restaurantService.editRestaurant(owner, editRestaurantInput)
+        return this.restaurantService.editRestaurant(owner,editRestaurantInput)
     }
 }
