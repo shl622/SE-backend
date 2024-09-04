@@ -50,7 +50,7 @@ npm run test:e2e
 -   address
 -   coverImage
 
-## Restaurant CRUD:
+## Restaurant CRUD
 
 -   View categories
 -   View Restaurants by Category (pagination)
@@ -63,3 +63,18 @@ npm run test:e2e
 -   Create Menu
 -   Edit Menu
 -   Delete Menu
+
+## Menu Model
+
+-   Menu Item name
+-   Menu Item price
+
+## Menu CRUD
+
+-   Create Menu Item
+-   Edit Menu Item
+-   Delete  Menu Item
+
+## Ordering CRUD
+## Ordering Subscription (Owner,Client,Delivery)
+## Payments (CRON)
