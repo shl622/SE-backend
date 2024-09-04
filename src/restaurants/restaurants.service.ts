@@ -22,6 +22,7 @@ export class RestaurantService {
         createRestaurantInput: CreatesRestaurantInput)
         : Promise<CreatesRestaurantOutput> {
         try {
+            console.log(owner.role)
             const newRestaurant = this.restaurants.create(createRestaurantInput)
             newRestaurant.owner = owner
             const category = await this.getOrCreateCategory(createRestaurantInput.categoryName)
