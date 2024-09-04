@@ -8,6 +8,8 @@ import { User } from "src/users/entities/user.entity";
 import { Role } from "src/auth/role.decorator";
 import { EditRestaurantInput, EditRestaurantOutput } from "./dto/edit-restaurant.dto";
 import { DeleteRestaurantInput, DeleteRestaurantOutput } from "./dto/delete-restaurant.dto";
+import { Category } from "./entities/category.entity";
+import { AllCategoriesOutput } from "./dto/all-categories.dto";
 
 @Resolver(of => Restaurant)
 export class RestaurantResolver {
@@ -40,5 +42,16 @@ export class RestaurantResolver {
         @Args('input') deleteRestaurantInput: DeleteRestaurantInput
     ): Promise<DeleteRestaurantOutput> {
         return this.restaurantService.deleteRestaurant(owner, deleteRestaurantInput)
+    }
+}
+
+//category resolver inherent in restaurant service
+@Resolver(of => Category)
+export class CategoryResolver {
+    constructor(private readonly restaurantService: RestaurantService){}
+    
+    @Query(type=>AllCategoriesOutput)
+    allCategories():Promise<AllCategoriesOutput>{
+        return this.restaurantService.allCategories()
     }
 }

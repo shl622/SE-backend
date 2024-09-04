@@ -8,6 +8,7 @@ import { Category } from "./entities/category.entity";
 import { EditRestaurantInput, EditRestaurantOutput } from "./dto/edit-restaurant.dto";
 import { CategoryRepository } from "./repositories/cateogry.repository";
 import { DeleteRestaurantInput, DeleteRestaurantOutput } from "./dto/delete-restaurant.dto";
+import { AllCategoriesOutput } from "./dto/all-categories.dto";
 
 @Injectable()
 export class RestaurantService {
@@ -104,6 +105,21 @@ export class RestaurantService {
             return {
                 ok: false,
                 error: 'Failed to delete restaurant'
+            }
+        }
+    }
+
+    async allCategories(): Promise<AllCategoriesOutput>{
+        try{
+            const categories = await this.categories.find()
+            return{
+                ok:true,
+                categories
+            }
+        }catch{
+            return{
+                ok:false,
+                error:"Failed to load categories."
             }
         }
     }
