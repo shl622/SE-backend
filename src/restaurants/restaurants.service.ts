@@ -13,12 +13,16 @@ import { CategoryInput } from "./dto/category.dto";
 import { RestaurantsInput, RestaurantsOutput } from "./dto/restaurants.dto";
 import { RestaurantInput, RestaurantOutput } from "./dto/restaurant.dto";
 import { SearchRestaurantInput, SearchRestaurantOutput } from "./dto/search-restaurant.dto";
+import { CreateDishInput, CreateDishOutput } from "./dto/create-dish.dto";
+import { Dish } from "./entities/dish.entity";
 
 @Injectable()
 export class RestaurantService {
     constructor(
         @InjectRepository(Restaurant)
         private readonly restaurants: Repository<Restaurant>,
+        @InjectRepository(Dish)
+        private readonly dishes: Repository<Dish>,
         private readonly categories: CategoryRepository
     ) { }
 
@@ -177,7 +181,7 @@ export class RestaurantService {
 
     async findRestaurantById({ restaurantId }: RestaurantInput): Promise<RestaurantOutput> {
         try {
-            const restaurant = await this.restaurants.findOne({ where: { id: restaurantId } })
+            const restaurant = await this.restaurants.findOne({ where: { id: restaurantId }, relations: ['menu'] })
             if (!restaurant) {
                 return {
                     ok: false,
@@ -199,8 +203,8 @@ export class RestaurantService {
     async searchRestaurantByName({ query, page }: SearchRestaurantInput): Promise<SearchRestaurantOutput> {
         try {
             const [restaurants, totalResults] = await this.restaurants.findAndCount({
-                where: { name: Raw(name=>`${name} ILIKE '%${query}%'`) }, 
-                skip: (page - 1) * 25, 
+                where: { name: Raw(name => `${name} ILIKE '%${query}%'`) },
+                skip: (page - 1) * 25,
                 take: 25
             })
             return {
@@ -213,6 +217,36 @@ export class RestaurantService {
             return {
                 ok: false,
                 error: 'Search failed due to an unknown error.'
+            }
+        }
+    }
+
+    //first find restaurant -> save menu (name,price,description,options)
+    async createDish(owner: User, createDishInput: CreateDishInput): Promise<CreateDishOutput> {
+        try {
+            const restaurant = await this.restaurants.findOne({ where: { id: createDishInput.restaurantId } })
+            if (!restaurant) {
+                return {
+                    ok: false,
+                    error: 'Failed to find restaurant.'
+                }
+            }
+            if (owner.id != restaurant.ownerId) {
+                return {
+                    ok: false,
+                    error: 'Must be an owner to add items to restaurant.'
+                }
+            }
+            const dish = await this.dishes.save(this.dishes.create({...createDishInput,restaurant}))
+            console.log(dish)
+            return {
+                ok: true
+            }
+        }
+        catch{
+            return{
+                ok:false,
+                error:'Failed to create dish.'
             }
         }
     }
