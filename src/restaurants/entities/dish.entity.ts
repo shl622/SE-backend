@@ -10,10 +10,10 @@ class DishOption {
     @Field(type => String)
     name: string
 
-    @Field(type => [String])
+    @Field(type => [String], { nullable: true })
     choices: string[]
 
-    @Field(type => Int)
+    @Field(type => Int, { nullable: true })
     extra: number
 }
 
