@@ -13,6 +13,7 @@ import { CategoryInput } from "./dto/category.dto";
 import { RestaurantsInput, RestaurantsOutput } from "./dto/restaurants.dto";
 import { RestaurantInput, RestaurantOutput } from "./dto/restaurant.dto";
 import { SearchRestaurantInput, SearchRestaurantOutput } from "./dto/search-restaurant.dto";
+import { CreateDishInput, CreateDishOutput } from "./dto/create-dish.dto";
 
 @Injectable()
 export class RestaurantService {
@@ -177,7 +178,7 @@ export class RestaurantService {
 
     async findRestaurantById({ restaurantId }: RestaurantInput): Promise<RestaurantOutput> {
         try {
-            const restaurant = await this.restaurants.findOne({ where: { id: restaurantId } })
+            const restaurant = await this.restaurants.findOne({ where: { id: restaurantId }, relations: ['menu'] })
             if (!restaurant) {
                 return {
                     ok: false,
@@ -199,8 +200,8 @@ export class RestaurantService {
     async searchRestaurantByName({ query, page }: SearchRestaurantInput): Promise<SearchRestaurantOutput> {
         try {
             const [restaurants, totalResults] = await this.restaurants.findAndCount({
-                where: { name: Raw(name=>`${name} ILIKE '%${query}%'`) }, 
-                skip: (page - 1) * 25, 
+                where: { name: Raw(name => `${name} ILIKE '%${query}%'`) },
+                skip: (page - 1) * 25,
                 take: 25
             })
             return {
@@ -214,6 +215,12 @@ export class RestaurantService {
                 ok: false,
                 error: 'Search failed due to an unknown error.'
             }
+        }
+    }
+
+    async createDish(owner:User, createDishInput: CreateDishInput):Promise<CreateDishOutput>{
+        return{
+            ok:false
         }
     }
 }

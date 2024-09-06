@@ -32,8 +32,8 @@ export class Dish extends CoreEntity {
     @IsNumber()
     price: number
 
-    @Field(type => String)
-    @Column()
+    @Field(type => String, { nullable: true })
+    @Column({ nullable: true })
     @IsString()
     photo: string
 
@@ -54,8 +54,8 @@ export class Dish extends CoreEntity {
     restaurantId: number
 
     //allows dish options (ex. flavor, toppings etc)
-    @Field(type => [DishOption])
-    @Column({ type: 'json' })
+    @Field(type => [DishOption], { nullable: true })
+    @Column({ type: 'json', nullable: true })
     options: DishOption[]
 }
 
