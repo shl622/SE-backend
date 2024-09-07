@@ -5,6 +5,7 @@ import * as bcrypt from "bcrypt";
 import { InternalServerErrorException } from "@nestjs/common";
 import { IsBoolean, IsEmail, IsEnum, IsString, Length } from "class-validator";
 import { Restaurant } from "src/restaurants/entities/restaurant.entity";
+import { Order } from "src/orders/entities/order.entity";
 
 export enum UserRole {
     Owner = "Owner",
@@ -45,6 +46,15 @@ export class User extends CoreEntity {
     @OneToMany(type => Restaurant, restaurant => restaurant.owner)
     restaurants: Restaurant[]
 
+    //Owner may have many orders
+    @Field(type=>[Order])
+    @OneToMany(type=>Order, order=>order.customer)
+    orders: Order[]
+
+    //for drivers
+    @Field(type=>[Order])
+    @OneToMany(type=>Order, order=>order.driver)
+    rides: Order[]
 
     //hash password before adding to DB
     //uses bcrypt- default 10 rounds of salt after hash
