@@ -16,6 +16,9 @@ import { Category } from './restaurants/entities/category.entity';
 import { RestaurantsModule } from './restaurants/restaurants.module';
 import { AuthModule } from './auth/auth.module';
 import { Dish } from './restaurants/entities/dish.entity';
+import { OrdersModule } from './orders/orders.module';
+import { Order } from './orders/entities/order.entity';
+import { OrderItem } from './orders/entities/order-item.entity';
 
 @Module({
   imports: [
@@ -46,7 +49,7 @@ import { Dish } from './restaurants/entities/dish.entity';
       synchronize: process.env.NODE_ENV !== "prod",
       logging: process.env.NODE_ENV !== "prod" && process.env.NODE_ENV !== 'test',
       namingStrategy: new SnakeNamingStrategy(),
-      entities: [User, Verification, Restaurant, Category, Dish],
+      entities: [User, Verification, Restaurant, Category, Dish, Order, OrderItem],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -63,7 +66,8 @@ import { Dish } from './restaurants/entities/dish.entity';
     }),
     UsersModule,
     RestaurantsModule,
-    AuthModule
+    AuthModule,
+    OrdersModule
   ],
   controllers: [],
   providers: [],
