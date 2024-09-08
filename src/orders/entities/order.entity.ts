@@ -4,6 +4,8 @@ import { Dish } from "src/restaurants/entities/dish.entity";
 import { Restaurant } from "src/restaurants/entities/restaurant.entity";
 import { User } from "src/users/entities/user.entity";
 import { Column, Entity, JoinTable, ManyToMany, ManyToOne } from "typeorm";
+import { OrderItem } from "./order-item.entity";
+import { IsEnum, IsNumber } from "class-validator";
 
 export enum OrderStatus {
     Pending = 'Pending',
@@ -33,16 +35,19 @@ export class Order extends CoreEntity {
     //dish can be many orders (multiple ppl order same dish)
     //order can have many dishes -> n:n relatinoship
     //owner side of this relationship will be order since we look at order to view which dishes were ordered
-    @Field(type => [Dish])
-    @ManyToMany(type=>Dish)
+    //order has many orderItems
+    @Field(type => [OrderItem])
+    @ManyToMany(type => OrderItem)
     @JoinTable()
-    Dishes: Dish[]
+    items: OrderItem[]
 
-    @Column()
-    @Field(type => Float)
+    @Column({ nullable: true })
+    @Field(type => Float, { nullable: true })
+    @IsNumber()
     total: number
 
     @Column({ type: "enum", enum: OrderStatus })
     @Field(type => OrderStatus)
+    @IsEnum(OrderStatus)
     status: OrderStatus
 }
