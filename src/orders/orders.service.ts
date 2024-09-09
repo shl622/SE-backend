@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Order } from "./entities/order.entity";
+import { Order, OrderStatus } from "./entities/order.entity";
 import { Repository } from "typeorm";
 import { Resolver } from "@nestjs/graphql";
 import { CreateOrderInput, CreateOrderOutput } from "./dto/create-order.dto";
@@ -10,6 +10,7 @@ import { OrderItem } from "./entities/order-item.entity";
 import { Dish, DishOption } from "src/restaurants/entities/dish.entity";
 import { GetOrdersInput, GetOrdersOutput } from "./dto/get-orders.dto";
 import { GetOrderInput, GetOrderOutput } from "./dto/get-order.dto";
+import { EditOrderInput, EditOrderOutput } from "./dto/edit-order.dto";
 
 
 @Injectable()
@@ -86,66 +87,120 @@ export class OrderService {
     }
 
     async getOrders(user: User, { status }: GetOrdersInput): Promise<GetOrdersOutput> {
-        try{
+        try {
             let orders: Order[]
-        if (user.role === UserRole.Client) {
-            orders = await this.orders.find({ where: { customer: { id: user.id }, ...(status && { status }) } })
-        }
-        else if (user.role === UserRole.Delivery) {
-            orders = await this.orders.find({ where: { driver: { id: user.id }, ...(status && { status }) } })
-        }
-        else if (user.role === UserRole.Owner) {
-            //return list of lists
-            orders = await this.orders.find({ where: { restaurant: { owner: { id: user.id } } } })
-            if(status){
-                orders = orders.filter(order=>order.status===status)
+            if (user.role === UserRole.Client) {
+                orders = await this.orders.find({ where: { customer: { id: user.id }, ...(status && { status }) } })
             }
-        }
-        return {
-            ok: true,
-            orders
-        }
-        }catch{
-            return{
-                ok:false,
+            else if (user.role === UserRole.Delivery) {
+                orders = await this.orders.find({ where: { driver: { id: user.id }, ...(status && { status }) } })
+            }
+            else if (user.role === UserRole.Owner) {
+                //return list of lists
+                orders = await this.orders.find({ where: { restaurant: { owner: { id: user.id } } } })
+                if (status) {
+                    orders = orders.filter(order => order.status === status)
+                }
+            }
+            return {
+                ok: true,
+                orders
+            }
+        } catch {
+            return {
+                ok: false,
                 error: 'Failed to get orders.'
             }
         }
     }
 
-    async getOrder(user: User, {id:orderId}: GetOrderInput):Promise<GetOrderOutput>{
-        try{
-            const order = await this.orders.findOne({where:{id:orderId}, relations:['restaurant']})
-        if(!order){
-            return{
-                ok:false,
-                error:'Failed to find order.'
-            }
-        }
+    accessOrder(user: User, order: Order): boolean {
         let access = true
-        if(user.role===UserRole.Client && order.customerId !== user.id){
+        if (user.role === UserRole.Client && order.customerId !== user.id) {
             access = false
         }
-        if(user.role===UserRole.Delivery && order.customerId !== user.id){
+        if (user.role === UserRole.Delivery && order.customerId !== user.id) {
             access = false
         }
-        if(user.role===UserRole.Owner && order.restaurant.ownerId !== user.id){
+        if (user.role === UserRole.Owner && order.restaurant.ownerId !== user.id) {
             access = false
         }
-        if(!access){
-            return{
-                ok:false,
-                error:'Access denied.'
+        return access
+    }
+
+    async getOrder(user: User, { id: orderId }: GetOrderInput): Promise<GetOrderOutput> {
+        try {
+            const order = await this.orders.findOne({ where: { id: orderId }, relations: ['restaurant'] })
+            if (!order) {
+                return {
+                    ok: false,
+                    error: 'Failed to find order.'
+                }
+            }
+            if (!this.accessOrder(user, order)) {
+                return {
+                    ok: false,
+                    error: 'Access denied.'
+                }
+            }
+            return {
+                ok: true,
+                order
+            }
+        } catch {
+            return {
+                ok: false,
+                error: 'Failed to get order.'
             }
         }
-        return{
-            ok:true,
-            order
-        }
-        }catch{
-            return{
-                ok:false,
-                error:'Failed to get order.'
+    }
+
+    //for updating the status of the order ( only driver and owner of restaurant can perform this )
+    async editOrder(user: User, { id: orderId, status }: EditOrderInput): Promise<EditOrderOutput> {
+        try {
+            const order = await this.orders.findOne({ where: { id: orderId }, relations: ['restaurant'] })
+            if (!order) {
+                return {
+                    ok: false,
+                    error: 'Failed to find order.'
+                }
+            }
+            if (!this.accessOrder(user, order)) {
+                return {
+                    ok: false,
+                    error: 'Access denied.'
+                }
+            }
+            let accessEdit = true
+            if (user.role === UserRole.Client) {
+                accessEdit = false
+            }
+            //restaurant owner can only modify when cooking or finished cooking
+            if (user.role === UserRole.Owner) {
+                if (status !== OrderStatus.InProgress && status !== OrderStatus.WaitingForPickUp) {
+                    accessEdit = true
+                }
+            }
+            //delivery can only modify when picked up or delivered
+            if (user.role === UserRole.Delivery) {
+                if (status !== OrderStatus.PickedUp && status !== OrderStatus.Delivered) {
+                    accessEdit = true
+                }
+            }
+            if (!accessEdit) {
+                return {
+                    ok: false,
+                    error: 'Access denied.'
+                }
+            }
+            await this.orders.save([{ id: orderId, status: status }])
+            return {
+                ok: true
+            }
+        } catch {
+            return {
+                ok: false,
+                error: 'Failed to edit order.'
             }
         }
     }
