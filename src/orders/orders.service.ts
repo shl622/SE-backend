@@ -4,10 +4,12 @@ import { Order } from "./entities/order.entity";
 import { Repository } from "typeorm";
 import { Resolver } from "@nestjs/graphql";
 import { CreateOrderInput, CreateOrderOutput } from "./dto/create-order.dto";
-import { User } from "src/users/entities/user.entity";
+import { User, UserRole } from "src/users/entities/user.entity";
 import { Restaurant } from "src/restaurants/entities/restaurant.entity";
 import { OrderItem } from "./entities/order-item.entity";
 import { Dish, DishOption } from "src/restaurants/entities/dish.entity";
+import { GetOrdersInput, GetOrdersOutput } from "./dto/get-orders.dto";
+import { GetOrderInput, GetOrderOutput } from "./dto/get-order.dto";
 
 
 @Injectable()
@@ -79,6 +81,71 @@ export class OrderService {
             return {
                 ok: false,
                 error: 'Failed to create order.'
+            }
+        }
+    }
+
+    async getOrders(user: User, { status }: GetOrdersInput): Promise<GetOrdersOutput> {
+        try{
+            let orders: Order[]
+        if (user.role === UserRole.Client) {
+            orders = await this.orders.find({ where: { customer: { id: user.id }, ...(status && { status }) } })
+        }
+        else if (user.role === UserRole.Delivery) {
+            orders = await this.orders.find({ where: { driver: { id: user.id }, ...(status && { status }) } })
+        }
+        else if (user.role === UserRole.Owner) {
+            //return list of lists
+            orders = await this.orders.find({ where: { restaurant: { owner: { id: user.id } } } })
+            if(status){
+                orders = orders.filter(order=>order.status===status)
+            }
+        }
+        return {
+            ok: true,
+            orders
+        }
+        }catch{
+            return{
+                ok:false,
+                error: 'Failed to get orders.'
+            }
+        }
+    }
+
+    async getOrder(user: User, {id:orderId}: GetOrderInput):Promise<GetOrderOutput>{
+        try{
+            const order = await this.orders.findOne({where:{id:orderId}, relations:['restaurant']})
+        if(!order){
+            return{
+                ok:false,
+                error:'Failed to find order.'
+            }
+        }
+        let access = true
+        if(user.role===UserRole.Client && order.customerId !== user.id){
+            access = false
+        }
+        if(user.role===UserRole.Delivery && order.customerId !== user.id){
+            access = false
+        }
+        if(user.role===UserRole.Owner && order.restaurant.ownerId !== user.id){
+            access = false
+        }
+        if(!access){
+            return{
+                ok:false,
+                error:'Access denied.'
+            }
+        }
+        return{
+            ok:true,
+            order
+        }
+        }catch{
+            return{
+                ok:false,
+                error:'Failed to get order.'
             }
         }
     }
