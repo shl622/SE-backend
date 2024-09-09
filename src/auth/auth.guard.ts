@@ -15,7 +15,7 @@ import { UserService } from "src/users/users.service";
 */
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) { }
   canActivate(context: ExecutionContext) {
     const roles = this.reflector.get<AllowedRoles>(
       'roles',
@@ -34,9 +34,7 @@ export class AuthGuard implements CanActivate {
     if (roles.includes('Any')) {
       return true;
     }
-    console.log(roles)
-    console.log(user.role)
-    console.log(roles.includes(user.role))
+    console.log('Current user role: ', user.role)
     return roles.includes(user.role);
   }
 }
