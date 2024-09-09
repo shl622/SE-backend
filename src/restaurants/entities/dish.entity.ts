@@ -10,7 +10,7 @@ import { Restaurant } from "./restaurant.entity";
 export class DishChoice {
     @Field(type => String)
     name: string
-    @Field(type => Float, { nullable: true })
+    @Field(type => Int, { nullable: true })
     extra?: number
 }
 
@@ -23,7 +23,7 @@ export class DishOption {
     @Field(type => [DishChoice], { nullable: true })
     choices:DishChoice[]
 
-    @Field(type => Float, { nullable: true })
+    @Field(type => Int, { nullable: true })
     extra?: number
 }
 
