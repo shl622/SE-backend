@@ -3,13 +3,14 @@ import { CoreEntity } from "src/common/entities/core.entity";
 import { Dish } from "src/restaurants/entities/dish.entity";
 import { Restaurant } from "src/restaurants/entities/restaurant.entity";
 import { User } from "src/users/entities/user.entity";
-import { Column, Entity, JoinTable, ManyToMany, ManyToOne } from "typeorm";
+import { Column, Entity, JoinTable, ManyToMany, ManyToOne, RelationId } from "typeorm";
 import { OrderItem } from "./order-item.entity";
 import { IsEnum, IsNumber } from "class-validator";
 
 export enum OrderStatus {
     Pending = 'Pending',
     InProgress = 'InProgress', //cooking
+    WaitingForPickUp = 'WaitingForPickUp', //finished cooking
     PickedUp = 'PickedUp',
     Delivered = 'Delivered'
 }
@@ -24,13 +25,19 @@ export class Order extends CoreEntity {
     @ManyToOne(type => User, user => user.orders, { onDelete: 'SET NULL', nullable: true })
     customer?: User
 
+    @RelationId((order: Order) => order.customer)
+    customerId: number
+
     @Field(type => User, { nullable: true })
     @ManyToOne(type => User, user => user.rides, { onDelete: 'SET NULL', nullable: true })
     driver?: User
 
-    @Field(type => Restaurant)
+    @RelationId((order: Order) => order.driver)
+    driverId: number
+
+    @Field(type => Restaurant, {nullable:true})
     @ManyToOne(type => Restaurant, restaurant => restaurant.orders, { onDelete: 'SET NULL', nullable: true })
-    restaurant: Restaurant
+    restaurant?: Restaurant
 
     //dish can be many orders (multiple ppl order same dish)
     //order can have many dishes -> n:n relatinoship
@@ -44,9 +51,9 @@ export class Order extends CoreEntity {
     @Column({ nullable: true })
     @Field(type => Float, { nullable: true })
     @IsNumber()
-    total: number
+    total?: number
 
-    @Column({ type: "enum", enum: OrderStatus })
+    @Column({ type: "enum", enum: OrderStatus, default: OrderStatus.Pending })
     @Field(type => OrderStatus)
     @IsEnum(OrderStatus)
     status: OrderStatus
