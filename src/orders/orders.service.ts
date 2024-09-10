@@ -10,8 +10,9 @@ import { Dish } from "src/restaurants/entities/dish.entity";
 import { GetOrdersInput, GetOrdersOutput } from "./dto/get-orders.dto";
 import { GetOrderInput, GetOrderOutput } from "./dto/get-order.dto";
 import { EditOrderInput, EditOrderOutput } from "./dto/edit-order.dto";
-import { NEW_PENDING_ORDER, PUB_SUB } from "src/common/common.constants";
+import { NEW_COOKED_ORDER, NEW_ORDER_UPDATE, NEW_PENDING_ORDER, PUB_SUB } from "src/common/common.constants";
 import { PubSub } from "graphql-subscriptions";
+import { TakeOrderInput, TakeOrderOutput } from "./dto/take-order.dto";
 
 
 @Injectable()
@@ -196,7 +197,16 @@ export class OrderService {
                     error: 'Access denied.'
                 }
             }
-            await this.orders.save([{ id: orderId, status: status }])
+            await this.orders.save({ id: orderId, status: status })
+            const updatedOrder = { ...order, status }
+            //Owner --> Delivery
+            if (user.role === UserRole.Owner) {
+                if (status === OrderStatus.WaitingForPickUp) {
+                    await this.pubSub.publish(NEW_COOKED_ORDER, { cookedOrders: updatedOrder })
+                }
+            }
+            //everyone
+            await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: updatedOrder })
             return {
                 ok: true
             }
@@ -204,6 +214,37 @@ export class OrderService {
             return {
                 ok: false,
                 error: 'Failed to edit order.'
+            }
+        }
+    }
+
+    async takeOrder(driver: User, { id: orderId }: TakeOrderInput): Promise<TakeOrderOutput> {
+        try {
+            const order = await this.orders.findOne({ where: { id: orderId } })
+            if (!order) {
+                return {
+                    ok: false,
+                    error: 'Failed to find order.'
+                }
+            }
+            if (order.driver) {
+                return {
+                    ok: false,
+                    error: 'Order is already assigned to a driver'
+                }
+            }
+            await this.orders.save({
+                id: orderId,
+                driver: driver
+            })
+            await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: { ...order, driver } })
+            return {
+                ok: true
+            }
+        } catch {
+            return{
+                ok:false,
+                error:'Failed to assign order due to unknown error.'
             }
         }
     }
