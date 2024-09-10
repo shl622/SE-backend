@@ -10,7 +10,7 @@ import { Dish } from "src/restaurants/entities/dish.entity";
 import { GetOrdersInput, GetOrdersOutput } from "./dto/get-orders.dto";
 import { GetOrderInput, GetOrderOutput } from "./dto/get-order.dto";
 import { EditOrderInput, EditOrderOutput } from "./dto/edit-order.dto";
-import { NEW_PENDING_ORDER, PUB_SUB } from "src/common/common.constants";
+import { NEW_COOKED_ORDER, NEW_PENDING_ORDER, PUB_SUB } from "src/common/common.constants";
 import { PubSub } from "graphql-subscriptions";
 
 
@@ -196,10 +196,18 @@ export class OrderService {
                     error: 'Access denied.'
                 }
             }
-            await this.orders.save([{ id: orderId, status: status }])
+            await this.orders.save({ id: orderId, status: status })
+            if (user.role === UserRole.Owner) {
+                if (status === OrderStatus.WaitingForPickUp) {
+                    await this.pubSub.publish(NEW_COOKED_ORDER, { cookedOrders: { ...order, status } })
+                }
+            }
             return {
                 ok: true
             }
+            // if (user.role === UserRole.Delivery) {
+
+            // }
         } catch {
             return {
                 ok: false,
