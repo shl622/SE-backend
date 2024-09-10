@@ -5,6 +5,7 @@ import { Repository } from "typeorm";
 import { User } from "src/users/entities/user.entity";
 import { CreatePaymentInput, CreatePaymentOutput } from "./dtos/create-payment.dto";
 import { Restaurant } from "src/restaurants/entities/restaurant.entity";
+import { GetPaymentsOutput } from "./dtos/get-payments.dto";
 
 
 @Injectable()
@@ -43,6 +44,20 @@ export class PaymentService {
                 error: 'Failed to create payment due to unknown error.'
             }
         }
+    }
 
+    async getPayments(user: User): Promise<GetPaymentsOutput> {
+        try {
+            const payments = await this.payments.find({ where: { user: { id: user.id } } })
+            return {
+                ok: true,
+                payments
+            }
+        } catch {
+            return {
+                ok: false,
+                error: 'Failed to create payment due to unknown error.'
+            }
+        }
     }
 }
