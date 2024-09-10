@@ -43,18 +43,26 @@ export class Restaurant extends CoreEntity {
     owner: User
 
     //restaurant may have many orders
-    @Field(type=>[Order])
-    @OneToMany(type=>Order, order=> order.customer)
+    @Field(type => [Order])
+    @OneToMany(type => Order, order => order.customer)
     orders: Order[]
 
     //preload relation but only load user Id instead of whole user object
     @RelationId((restaurant: Restaurant) => restaurant.owner)
     ownerId: number
 
-    @Field(type => [Dish], {nullable:true})
+    @Field(type => [Dish], { nullable: true })
     @OneToMany(
-        type=> Dish,
+        type => Dish,
         dish => dish.restaurant,
     )
     menu: Dish[]
+
+    @Field(type => Boolean)
+    @Column({ default: false })
+    isPromoted: boolean
+
+    @Field(type => Date, { nullable: true })
+    @Column({ nullable: true })
+    promotedUntil: Date
 }

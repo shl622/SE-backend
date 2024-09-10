@@ -24,6 +24,8 @@ Make sure to include a <code>.env.test</code> file at root.
 ```
 npm run test:e2e
 ```
+<details>
+<summary> Data Models </summary>
 
 ## User Model:
 
@@ -90,4 +92,9 @@ npm run test:e2e
 -   Pending Pickup (Delivery)
     -> (s/listen: orderUpdate && trigger: editOrder(orderUpdate))
 
-## Payments (CRON)
+## Payments for Restaurant Promotions (CRON)
+-   opt to use Paddle instead of Stripe due to side project limitations
+-   Create Payment
+-   (Query) View Payments
+
+</details>
