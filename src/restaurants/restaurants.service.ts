@@ -147,7 +147,11 @@ export class RestaurantService {
                 }
             }
             //use find and combine take,skip instead of loading relations for db optimization
-            const restaurants = await this.restaurants.find({ where: { category: { id: category.id } }, take: 25, skip: (page - 1) * 25 })
+            const restaurants = await this.restaurants.find({
+                where: { category: { id: category.id } }, take: 25, skip: (page - 1) * 25, order: {
+                    isPromoted: 'DESC'
+                }
+            })
             const totalResults = await this.countRestaurants(category)
             return {
                 ok: true,
@@ -165,7 +169,11 @@ export class RestaurantService {
 
     async allRestaurants({ page }: RestaurantsInput): Promise<RestaurantsOutput> {
         try {
-            const [restaurants, totalResults] = await this.restaurants.findAndCount({ skip: (page - 1) * 25, take: 25 })
+            const [restaurants, totalResults] = await this.restaurants.findAndCount({
+                skip: (page - 1) * 25, take: 25, order: {
+                    isPromoted: "DESC"
+                }
+            })
             return {
                 ok: true,
                 results: restaurants,
@@ -273,7 +281,7 @@ export class RestaurantService {
             return {
                 ok: true
             }
-        }catch{
+        } catch {
             return {
                 ok: false,
                 error: 'Failed to find dish due to unknown error.'
@@ -301,7 +309,7 @@ export class RestaurantService {
                 ok: true
             }
         }
-        catch(error) {
+        catch (error) {
             console.log(error)
             return {
                 ok: false,

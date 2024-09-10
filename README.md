@@ -92,7 +92,7 @@ npm run test:e2e
 -   Pending Pickup (Delivery)
     -> (s/listen: orderUpdate && trigger: editOrder(orderUpdate))
 
-## Payments (CRON)
+## Payments for Restaurant Promotions (CRON)
 -   opt to use Paddle instead of Stripe due to side project limitations
 -   Create Payment
 -   (Query) View Payments
