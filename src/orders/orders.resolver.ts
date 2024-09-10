@@ -8,13 +8,13 @@ import { Role } from "src/auth/role.decorator";
 import { GetOrdersInput, GetOrdersOutput } from "./dto/get-orders.dto";
 import { GetOrderInput, GetOrderOutput } from "./dto/get-order.dto";
 import { EditOrderInput, EditOrderOutput } from "./dto/edit-order.dto";
+import { Inject } from "@nestjs/common";
+import { PUB_SUB } from "src/common/common.constants";
 import { PubSub } from "graphql-subscriptions";
-
-const pubsub = new PubSub()
 
 @Resolver(of=>Order)
     export class OrderResolver {
-        constructor(private readonly ordersService: OrderService){}
+        constructor(private readonly ordersService: OrderService, @Inject(PUB_SUB) private readonly pubSub: PubSub){}
 
     @Mutation(returns => CreateOrderOutput)
     @Role(['Client'])
@@ -45,7 +45,7 @@ const pubsub = new PubSub()
     //test that trigger works
     @Mutation(returns => Boolean)
     subReady(){
-        pubsub.publish('start',{orderSubscription: "Sub is Ready."})
+        this.pubSub.publish('start',{orderSubscription: "Sub is Ready."})
         return true
     }
 
@@ -55,6 +55,6 @@ const pubsub = new PubSub()
     @Role(['Any'])
     orderSubscription(@AuthUser() user:User){
         console.log('user:', user)
-        return pubsub.asyncIterator('start')
+        return this.pubSub.asyncIterator('start')
     }
 }
