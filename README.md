@@ -94,5 +94,7 @@ npm run test:e2e
 
 ## Payments (CRON)
 -   opt to use Paddle instead of Stripe due to side project limitations
+-   Create Payment
+-   (Query) View Payments
 
 </details>
