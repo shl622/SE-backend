@@ -9,7 +9,7 @@ import { GetOrdersInput, GetOrdersOutput } from "./dto/get-orders.dto";
 import { GetOrderInput, GetOrderOutput } from "./dto/get-order.dto";
 import { EditOrderInput, EditOrderOutput } from "./dto/edit-order.dto";
 import { Inject } from "@nestjs/common";
-import { PUB_SUB } from "src/common/common.constants";
+import { NEW_PENDING_ORDER, PUB_SUB } from "src/common/common.constants";
 import { PubSub } from "graphql-subscriptions";
 
 @Resolver(of => Order)
@@ -42,21 +42,18 @@ export class OrderResolver {
         return this.ordersService.editOrder(user, editOrderInput)
     }
 
-    //test that trigger works
-    @Mutation(returns => Boolean)
-    async subReady(@Args('subId') subId: number) {
-        await this.pubSub.publish('start', { orderSubscription: subId })
-        return true
-    }
-
-    @Subscription(returns => String, {
-        filter: ({ orderSubscription }, { subId }) => {
-            return orderSubscription === subId
+    //Owner Dashboard show pending orders
+    //triggered by customer (trigger string saved in constants)
+    //when customer adds new order, this subscription is triggered
+    @Subscription(returns => Order, {
+        //check if restaurant of the order is owned by the listener
+        filter: ({ pendingOrders: { ownerId } }, _, { user }) => {
+            return ownerId === user.id
         },
-        resolve: ({orderSubscription}) => `Your sub with the id ${orderSubscription} is ready!`
+        resolve: ({ pendingOrders: { order } }) => order
     })
-    @Role(['Any'])
-    orderSubscription(@Args('subId') subId: number) {
-        return this.pubSub.asyncIterator('start')
+    @Role(['Owner'])
+    pendingOrders() {
+        return this.pubSub.asyncIterator(NEW_PENDING_ORDER)
     }
 }
