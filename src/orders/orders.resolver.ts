@@ -1,4 +1,4 @@
-import { Args, Mutation, Query, Resolver } from "@nestjs/graphql";
+import { Args, Mutation, Query, Resolver, Subscription } from "@nestjs/graphql";
 import { Order } from "./entities/order.entity";
 import { OrderService } from "./orders.service";
 import { CreateOrderInput, CreateOrderOutput } from "./dto/create-order.dto";
@@ -8,6 +8,9 @@ import { Role } from "src/auth/role.decorator";
 import { GetOrdersInput, GetOrdersOutput } from "./dto/get-orders.dto";
 import { GetOrderInput, GetOrderOutput } from "./dto/get-order.dto";
 import { EditOrderInput, EditOrderOutput } from "./dto/edit-order.dto";
+import { PubSub } from "graphql-subscriptions";
+
+const pubsub = new PubSub()
 
 @Resolver(of=>Order)
     export class OrderResolver {
@@ -37,5 +40,21 @@ import { EditOrderInput, EditOrderOutput } from "./dto/edit-order.dto";
     @Role(['Any'])
     async editOrder(@AuthUser() user:User, @Args('input') editOrderInput: EditOrderInput):Promise<EditOrderOutput>{
         return this.ordersService.editOrder(user, editOrderInput)
+    }
+
+    //test that trigger works
+    @Mutation(returns => Boolean)
+    subReady(){
+        pubsub.publish('start',{orderSubscription: "Sub is Ready."})
+        return true
+    }
+
+    //Listener
+    //to-do: filter subscriptions
+    @Subscription(returns => String)
+    @Role(['Any'])
+    orderSubscription(@AuthUser() user:User){
+        console.log('user:', user)
+        return pubsub.asyncIterator('start')
     }
 }
