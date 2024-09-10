@@ -76,5 +76,18 @@ npm run test:e2e
 -   Delete  Menu Item
 
 ## Ordering CRUD
+
+-   Create Order
+-   Edit Order (Edit status)
+-   Delete Order
+
 ## Ordering Subscription (Owner,Client,Delivery)
+
+-   Pending Orders (Owner dashboard)
+    -> (s/listen: newOrder  && trigger: createOrder(newOrder))
+-   Order Status (Client/Customer)
+    -> (s/listen: orderUpdate && trigger: editOrder(orderUpdate))
+-   Pending Pickup (Delivery)
+    -> (s/listen: orderUpdate && trigger: editOrder(orderUpdate))
+
 ## Payments (CRON)
