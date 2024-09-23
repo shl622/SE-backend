@@ -7,10 +7,16 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe()
   )
+  // app.enableCors({
+  //   origin: 'https://studio.apollographql.com',
+  //   methods: 'GET',
+  //   allowedHeaders: 'Content-Type,Accept'
+  // })
   app.enableCors({
-    origin: 'https://studio.apollographql.com',
-    methods: 'GET',
-    allowedHeaders: 'Content-Type,Accept'
+    origin: 'http://localhost:3000',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Accept, Authorization',
+    credentials: true,
   })
   await app.listen(4000);
 }
