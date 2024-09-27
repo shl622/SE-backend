@@ -39,7 +39,7 @@ export class Restaurant extends CoreEntity {
     //restaurant must have a user (Owner)
     //Owner may have many restaurants, but only one owner per restaurant
     @Field(type => User)
-    @ManyToOne(type => User, user => user.restaurants, { onDelete: 'CASCADE', eager:true })
+    @ManyToOne(type => User, user => user.restaurants, { onDelete: 'CASCADE' })
     owner: User
 
     //restaurant may have many orders
