@@ -68,7 +68,7 @@ export class PaymentService {
     }
 
     //use CRON job to check if restaurant has passed promotion
-    @Interval(50000)
+    // @Interval(50000)
     async checkPromotedRestaurants() {
         const restaurants = await this.restaurants.find({ where: { isPromoted: true, promotedUntil: LessThan(new Date()) } })
         console.log(restaurants)
