@@ -13,8 +13,8 @@ export class CategoryRepository extends Repository<Category> {
         super(Category, dataSource.createEntityManager())
     }
     async getOrCreate(name: string): Promise<Category> {
-        const categoryName = name.trim().toLowerCase()
-        const categorySlug = categoryName.replace(/ /g, '-')
+        const categoryName = name.trim().charAt(0).toUpperCase() + name.trim().slice(1).toLowerCase()
+        const categorySlug = categoryName.replace(/ /g, '-').toLowerCase()
 
         //try create category or find
         //if category doesn't exist, create new one and else apply category
