@@ -3,7 +3,7 @@ import { Dish } from "../entities/dish.entity";
 import { CoreOutput } from "src/common/dto/output.dto";
 
 @InputType()
-export class CreateDishInput extends PickType(Dish, ['name', 'price', 'description', 'options', 'photo']) {
+export class CreateDishInput extends PickType(Dish, ['name', 'price', 'photo', 'description', 'options']) {
     @Field(type => Int)
     restaurantId: number
 }
