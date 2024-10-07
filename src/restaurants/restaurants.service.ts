@@ -19,6 +19,7 @@ import { EditDishInput, EditDishOutput } from "./dto/edit-dish.dto";
 import { DeleteDishInput, DeleteDishOutput } from "./dto/delete-dish.dto";
 import { MyRestaurantsOutput } from "./dto/my-restaurants.dto";
 import { MyRestaurantInput, MyRestaurantOutput } from "./dto/my-restaurant.dto";
+import { GetDishInput, GetDishOutput } from "./dto/get-dish.dto";
 
 @Injectable()
 export class RestaurantService {
@@ -344,6 +345,21 @@ export class RestaurantService {
         }
         catch (error) {
             console.log(error)
+            return {
+                ok: false,
+                error: 'Failed to find dish due to unknown error.'
+            }
+        }
+    }
+
+    async getDish(getDishInput: GetDishInput): Promise<GetDishOutput> {
+        try {
+            const dish = await this.dishes.findOne({ where: { id: getDishInput.id } })
+            return {
+                ok: true,
+                dish
+            }
+        } catch {
             return {
                 ok: false,
                 error: 'Failed to find dish due to unknown error.'
