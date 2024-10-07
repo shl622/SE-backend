@@ -44,7 +44,7 @@ export class Restaurant extends CoreEntity {
 
     //restaurant may have many orders
     @Field(type => [Order])
-    @OneToMany(type => Order, order => order.customer)
+    @OneToMany(type => Order, order => order.restaurant)
     orders: Order[]
 
     //preload relation but only load user Id instead of whole user object
